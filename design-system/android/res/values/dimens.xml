@@ -35,4 +35,9 @@
     <dimen name="capy_border">1dp</dimen>
     <dimen name="capy_capy_face">48dp</dimen>
     <dimen name="capy_capy_hero">160dp</dimen>
+    <dimen name="capy_progress_bar">6dp</dimen>
+    <dimen name="capy_subject_dot">10dp</dimen>
+    <dimen name="capy_pin_dot">16dp</dimen>
+    <dimen name="capy_lesson_row_height">60dp</dimen>
+    <dimen name="capy_bubble_avatar">40dp</dimen>
 </resources>

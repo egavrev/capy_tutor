@@ -58,6 +58,13 @@ class SessionRunner(
     /** After a pause: sends the pending request again. */
     suspend fun resume(state: SessionState): Update = send(state, Input.Resume)
 
+    /**
+     * After the app was killed while waiting for the AI (pending, not paused): sends the same
+     * request again. Otherwise returns the state unchanged.
+     */
+    suspend fun recover(state: SessionState): Update =
+        if (state.pending != null && state.paused == null) settle(Update(state, emptyList(), state.pending)) else Update(state, emptyList(), null)
+
     private suspend fun settle(first: Update): Update {
         var update = first
         val said = first.capySaid.toMutableList()

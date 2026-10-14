@@ -26,7 +26,11 @@ import kotlinx.serialization.json.put
  * [ProviderRouter]. Callers pass text that already went through the safety filter.
  * Sends ideas and the child's words, never the whole lesson (HANDOFF.md §8 budget).
  */
-class ModelSessionAi(private val router: ProviderRouter) : SessionAi {
+class ModelSessionAi(
+    private val router: ProviderRouter,
+    /** How the summary refers to the child: "o fată", "un băiat" or "un copil". Never the name. */
+    private val childForm: () -> String = { "un copil" },
+) : SessionAi {
 
     override suspend fun assessRecall(pack: LessonPack, transcript: String): AiReply<RecallReply> {
         val user = Prompts.render(
@@ -99,7 +103,10 @@ class ModelSessionAi(private val router: ProviderRouter) : SessionAi {
         }.toString()
         val user = Prompts.render(
             Prompts.SUMMARIZE_SESSION,
-            mapOf("title" to pack.title, "score" to state.score.toString(), "total" to state.results.size.toString(), "results" to results),
+            mapOf(
+                "title" to pack.title, "score" to state.score.toString(), "total" to state.results.size.toString(),
+                "results" to results, "child" to childForm(),
+            ),
         )
         return router.callJson(CoreConfig.SUMMARIZE_SESSION, user) { Schemas.parseSummary(it) }.toReply()
     }

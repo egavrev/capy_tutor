@@ -169,6 +169,20 @@ class SessionEngineTest {
     }
 
     @Test
+    fun killedWhileWaitingForTheModelRecoversTheSameRequest() = run {
+        var u = runner.send(runner.start().state, Input.Continue)
+        u = runner.send(u.state, Input.Say("africa"))
+        // The app saved the state with the request pending, then was killed before the reply.
+        val killed = SessionCodec.decode(SessionCodec.encode(runner.engine.onInput(u.state, Input.FinishRetelling).state))
+        assertEquals(Phase.ASSESSING, killed.phase)
+        ai.recall += recallOf("i1" to COVERED, "i2" to MISSED, "i3" to MISSED)
+        val r = runner.recover(killed)
+        assertEquals(Phase.COVERAGE, r.state.phase)
+        assertEquals("africa", ai.sentTranscripts.single())
+        assertEquals(Phase.COVERAGE, runner.recover(r.state).state.phase) // nothing pending: unchanged
+    }
+
+    @Test
     fun keywordCoveredAnswerNeedsNoModelEvenWhenOffline() = run {
         var u = runner.send(runner.start().state, Input.Continue)
         u = runner.send(u.state, Input.Say("nu mai stiu nimic despre lucy"))

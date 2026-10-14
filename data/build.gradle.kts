@@ -1,8 +1,9 @@
-// :data is the Android storage layer: Room, the Markdown file store and encrypted
-// settings (milestone M3). Empty in M0.
+// :data is the Android storage layer: Room (HANDOFF.md §9), the lesson file store and the
+// Keystore-encrypted settings (child's name, parent PIN, Groq API key).
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -25,7 +26,17 @@ kotlin {
     }
 }
 
+ksp {
+    // Schemas are committed so later versions can migrate without losing Vali's history.
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
-    implementation(project(":core"))
+    api(project(":core"))
+    api(project(":ai"))
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.datastore.preferences)
     testImplementation(libs.junit)
 }

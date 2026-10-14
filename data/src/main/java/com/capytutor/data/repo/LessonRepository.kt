@@ -1,0 +1,148 @@
+package com.capytutor.data.repo
+
+import com.capytutor.ai.EnrichResult
+import com.capytutor.ai.LessonEnricher
+import com.capytutor.core.lesson.Lesson
+import com.capytutor.core.lesson.LessonParser
+import com.capytutor.core.lesson.ParseResult
+import com.capytutor.core.lesson.Subject
+import com.capytutor.core.pack.LessonPack
+import com.capytutor.core.pack.PackIdea
+import com.capytutor.data.db.CapyDatabase
+import com.capytutor.data.db.KeyIdeaEntity
+import com.capytutor.data.db.LessonEntity
+import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
+import java.io.File
+
+sealed interface ImportResult {
+    /** Imported; [enrichError] set when the questions could not be generated yet. */
+    data class Ok(val lessonId: Long, val enrichError: String?) : ImportResult
+
+    /** Plain Romanian, shown to the parent as is. */
+    data class Rejected(val message: String) : ImportResult
+}
+
+/**
+ * Lessons: import a Markdown file (HANDOFF.md §6), generate hints and questions once, let the
+ * parent review and edit them, then mark the lesson ready. Keeps the original file and its hash.
+ */
+class LessonRepository(
+    private val db: CapyDatabase,
+    private val filesDir: File,
+    private val enricher: LessonEnricher,
+    private val hasGroqKey: () -> Boolean,
+    private val clock: () -> Long = System::currentTimeMillis,
+) {
+    private val lessons = db.lessons()
+
+    fun observeLessons(): Flow<List<LessonEntity>> = lessons.observeAll()
+    fun observeLesson(id: Long): Flow<LessonEntity?> = lessons.observe(id)
+    fun observeIdeas(lessonId: Long): Flow<List<KeyIdeaEntity>> = lessons.observeIdeas(lessonId)
+    suspend fun lesson(id: Long): LessonEntity? = lessons.get(id)
+
+    suspend fun import(markdown: String): ImportResult {
+        val lesson = when (val r = LessonParser.parse(markdown)) {
+            is ParseResult.Ok -> r.lesson
+            is ParseResult.Error -> return ImportResult.Rejected(r.message)
+        }
+        lessons.byHash(lesson.sha256)?.let {
+            return ImportResult.Rejected("Lecția „${it.title}” există deja.")
+        }
+        val dir = File(filesDir, "lessons").apply { mkdirs() }
+        val file = File(dir, "${lesson.sha256}.md").apply { writeText(markdown) }
+        val id = lessons.insert(
+            LessonEntity(
+                subject = lesson.subject.label,
+                title = lesson.title,
+                grade = lesson.grade,
+                chapter = lesson.chapter,
+                mdPath = file.path,
+                mdHash = lesson.sha256,
+                status = LessonEntity.DRAFT,
+                enriched = false,
+                createdAt = clock(),
+            ),
+        )
+        // The parent's ideas are stored at once, so nothing is lost if generating fails.
+        lessons.insertIdeas(
+            lesson.ideas.mapIndexed { i, text ->
+                KeyIdeaEntity(lessonId = id, ideaKey = lesson.ideaId(i), ord = i, text = text, keywords = "[]", broadQuestion = "", clue = "", explanation = "", checkQuestion = "", checkAnswer = "")
+            },
+        )
+        return ImportResult.Ok(id, enrich(id, lesson))
+    }
+
+    /** Generates (again) the hints and questions. Returns an error message, or null when done. */
+    suspend fun regenerate(lessonId: Long): String? {
+        val entity = lessons.get(lessonId) ?: return "Lecția nu mai există."
+        val lesson = (LessonParser.parse(File(entity.mdPath).readText()) as? ParseResult.Ok)?.lesson
+            ?: return "Fișierul lecției nu mai poate fi citit."
+        return enrich(lessonId, lesson)
+    }
+
+    private suspend fun enrich(lessonId: Long, lesson: Lesson): String? {
+        if (!hasGroqKey()) return "Adaugă cheia Groq în Setări, apoi apasă „Generează întrebările”."
+        return when (val r = enricher.enrich(lesson)) {
+            is EnrichResult.Failed -> r.message
+            is EnrichResult.Ok -> {
+                lessons.replaceIdeas(lessonId, r.pack.ideas.map { it.toEntity(lessonId) })
+                lessons.get(lessonId)?.let { lessons.update(it.copy(enriched = true)) }
+                null
+            }
+        }
+    }
+
+    suspend fun updateIdea(idea: KeyIdeaEntity) = lessons.updateIdea(idea)
+
+    suspend fun setReady(lessonId: Long, ready: Boolean) {
+        lessons.get(lessonId)?.let { lessons.update(it.copy(status = if (ready) LessonEntity.READY else LessonEntity.DRAFT)) }
+    }
+
+    suspend fun delete(lessonId: Long) {
+        lessons.get(lessonId)?.let { File(it.mdPath).delete() }
+        lessons.delete(lessonId)
+    }
+
+    /** The lesson as the session engine needs it. */
+    suspend fun pack(lessonId: Long): LessonPack? {
+        val l = lessons.get(lessonId) ?: return null
+        val ideas = lessons.ideas(lessonId)
+        return LessonPack(l.title, l.mdHash, ideas.map { it.toPack() })
+    }
+
+    companion object {
+        fun subjectOf(label: String): Subject? = Subject.fromLabel(label)
+
+        fun keywordsToText(json: String): String = decodeKeywords(json).joinToString("\n") { it.joinToString(" / ") }
+
+        fun keywordsFromText(text: String): String = encodeKeywords(
+            text.lines().map { line -> line.split('/').map { it.trim() }.filter { it.isNotEmpty() } }.filter { it.isNotEmpty() },
+        )
+
+        fun encodeKeywords(groups: List<List<String>>): String =
+            JsonArray(groups.map { g -> JsonArray(g.map(::JsonPrimitive)) }).toString()
+
+        fun decodeKeywords(json: String): List<List<String>> = runCatching {
+            Json.parseToJsonElement(json).jsonArray.map { g -> g.jsonArray.map { it.jsonPrimitive.content } }
+        }.getOrDefault(emptyList())
+    }
+}
+
+fun PackIdea.toEntity(lessonId: Long) = KeyIdeaEntity(
+    lessonId = lessonId, ideaKey = id, ord = order, text = text,
+    keywords = LessonRepository.encodeKeywords(keywords),
+    broadQuestion = broadQuestion, clue = clue, explanation = explanation,
+    checkQuestion = checkQuestion, checkAnswer = checkAnswer,
+)
+
+fun KeyIdeaEntity.toPack() = PackIdea(
+    id = ideaKey, order = ord, text = text,
+    keywords = LessonRepository.decodeKeywords(keywords),
+    broadQuestion = broadQuestion, clue = clue, explanation = explanation,
+    checkQuestion = checkQuestion, checkAnswer = checkAnswer,
+)

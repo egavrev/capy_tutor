@@ -31,6 +31,18 @@ object CapyDimens {
     val capyFace = 48.dp
     /** Capy illustration in empty states and big moments. */
     val capyHero = 160.dp
+    /** Step progress bar height. */
+    val progressBar = 6.dp
+    /** Subject dot in lesson rows. */
+    val subjectDot = 10.dp
+    /** PIN dots. */
+    val pinDot = 16.dp
+    /** Lesson row. */
+    val lessonRowHeight = 60.dp
+    /** Capy's face next to a bubble. */
+    val capyBubbleAvatar = 40.dp
+    /** Bubbles use at most this share of the screen width. */
+    const val bubbleMaxWidth = 0.85f
 }
 
 /** Shapes: cards 16 dp, big buttons and bubbles 24 dp, chips are pills. */
