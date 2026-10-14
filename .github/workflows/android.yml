@@ -23,7 +23,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Unit tests
-        run: ./gradlew --no-daemon test
+        run: |
+          set -o pipefail
+          ./gradlew --no-daemon test 2>&1 | tee -a /tmp/build.log
 
       - name: Build APKs
         env:
@@ -34,11 +36,13 @@ jobs:
             echo "$CAPY_TUTOR_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/capy-tutor-release.jks"
             export CAPY_TUTOR_KEYSTORE_FILE="$RUNNER_TEMP/capy-tutor-release.jks"
             echo "Building debug + signed release"
-            ./gradlew --no-daemon assembleDebug assembleRelease
+            set -o pipefail
+            ./gradlew --no-daemon assembleDebug assembleRelease 2>&1 | tee -a /tmp/build.log
             "$ANDROID_HOME"/build-tools/$(ls "$ANDROID_HOME"/build-tools | sort -V | tail -1)/apksigner verify --print-certs app/build/outputs/apk/release/*-release.apk | head -3
           else
             echo "::notice::CAPY_TUTOR_KEYSTORE_B64 secret not set: building the debug APK only"
-            ./gradlew --no-daemon assembleDebug
+            set -o pipefail
+            ./gradlew --no-daemon assembleDebug 2>&1 | tee -a /tmp/build.log
           fi
 
       - uses: actions/upload-artifact@v4
@@ -82,6 +86,22 @@ jobs:
         with:
           name: build-reports
           path: '**/build/reports/'
+
+      # Compiler errors as annotations, and the full log on the ci-logs branch (readable without
+      # downloading artifacts).
+      - name: Report build errors
+        if: failure() && github.event_name != 'pull_request'
+        run: |
+          grep -E '^e: |error:|FAILED|What went wrong' /tmp/build.log | head -40 | while IFS= read -r line; do echo "::error::$line"; done
+          mkdir -p /tmp/logs && cp /tmp/build.log /tmp/logs/build.log
+          cd /tmp/logs
+          printf 'Failed build of %s\n' "$GITHUB_SHA" > README.txt
+          git init -q -b ci-logs
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -qm "Build log for $GITHUB_SHA"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" ci-logs
 
   # The owner's setup: a Mac with Java 17 and no Android SDK. The test bench must build and run there.
   mac-without-android-sdk:
