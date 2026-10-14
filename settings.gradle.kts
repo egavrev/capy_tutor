@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "CapyTutor"
 
-include(":app", ":core", ":ai", ":data")
+include(":app", ":core", ":ai", ":data", ":testbench")
+project(":testbench").projectDir = file("tools/testbench")

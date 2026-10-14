@@ -19,3 +19,7 @@ captures/
 .idea/
 *.iml
 .DS_Store
+
+# Test bench reports (published to the testbench branch by CI)
+tools/testbench/out/
+testbench-out/

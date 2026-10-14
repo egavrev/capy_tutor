@@ -1,0 +1,24 @@
+Sarcină: pregătești materialele cu care Capy va verifica lecția de mai jos. Acest răspuns îl citește aplicația și părintele, nu copilul.
+
+Titlul lecției: {{title}}
+
+Textul lecției:
+<<<
+{{text}}
+>>>
+
+Ideile cheie, scrise de părinte (id: text):
+{{ideas}}
+
+Pentru FIECARE idee, cu același id și în aceeași ordine, scrie:
+- "keywords": între 2 și 4 grupuri de cuvinte cheie. Un grup = un concept esențial al ideii, scris ca listă de forme echivalente: forma din lecție, forme flexionare (singular/plural, cu și fără articol) și sinonime pe care le-ar folosi un copil de 10 ani. Alege conceptele fără de care ideea nu mai e aceeași (de exemplu un loc, un nume, un număr, o acțiune). Un copil care spune ideea folosește cel puțin o formă din fiecare grup. Cuvinte scurte, fără explicații.
+- "broadQuestion": o întrebare largă, care îl ajută pe copil să-și amintească ideea fără să i-o spună. Cel mult 15 cuvinte.
+- "clue": un indiciu mai precis decât întrebarea, care tot nu dă răspunsul. Cel mult 15 cuvinte.
+- "explanation": ideea explicată în 1–2 propoziții scurte, pe înțelesul unui copil de 10 ani.
+- "checkQuestion": o întrebare scurtă și deschisă, al cărei răspuns este chiar ideea. Fără variante de răspuns.
+- "checkAnswer": răspunsul așteptat, în câteva cuvinte.
+
+Folosește doar informații din textul lecției. Scrie corect în limba română, cu ș și ț.
+
+Răspunde DOAR cu JSON, exact în această formă:
+{"ideas":[{"id":"i1","keywords":[["Africa","african"],["primii oameni","primul om","strămoși"]],"broadQuestion":"...","clue":"...","explanation":"...","checkQuestion":"...","checkAnswer":"..."}]}

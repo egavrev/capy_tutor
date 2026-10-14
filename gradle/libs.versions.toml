@@ -8,6 +8,9 @@ composeBom = "2025.06.01"
 lifecycle = "2.9.1"
 navigationCompose = "2.9.0"
 material = "1.12.0"
+okhttp = "4.12.0"
+serialization = "1.9.0"
+coroutines = "1.10.2"
 junit = "4.13.2"
 
 [libraries]
@@ -24,6 +27,9 @@ androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lif
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 # Needed by the design package's XML theme (Theme.Material3.DayNight) for the manifest and splash.
 google-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 
 [plugins]

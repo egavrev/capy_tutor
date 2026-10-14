@@ -1,0 +1,65 @@
+name: Test bench (Groq)
+
+# Runs tools/testbench against Groq's free plan on demand (Actions → Test bench → Run workflow).
+# Needs the GROQ_API_KEY repository secret. Only the sample lessons and sample retellings are
+# sent, and only to Groq. Reports go to the `testbench` branch and to the run's artifacts.
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: 'Arguments, e.g. "all", "all --fresh", "enrich lessons/istorie/SAMPLE-aparitia-omului.md"'
+        required: true
+        default: 'all --fresh'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: testbench
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Run the test bench
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          BENCH_ARGS: ${{ inputs.args }}
+        run: |
+          if [ -z "$GROQ_API_KEY" ]; then
+            echo "::error::Add the GROQ_API_KEY repository secret first (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
+          ./gradlew --no-daemon -q :testbench:run --args="$BENCH_ARGS --out testbench-out"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: testbench-reports
+          path: testbench-out/
+
+      - name: Publish reports to the testbench branch
+        if: always()
+        env:
+          BENCH_ARGS: ${{ inputs.args }}
+        run: |
+          [ -d testbench-out ] || exit 0
+          cd testbench-out
+          printf 'Run %s for %s with args: %s\n' "$GITHUB_RUN_ID" "$GITHUB_SHA" "$BENCH_ARGS" > RUN.txt
+          git init -q -b testbench
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -A
+          git commit -qm "Test bench reports for $GITHUB_SHA" || exit 0
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" testbench

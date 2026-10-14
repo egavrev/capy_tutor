@@ -1,0 +1,26 @@
+Sarcină: verifică ce idei cheie din lecție a spus copilul când a povestit lecția cu cuvintele lui.
+
+Atenție: textul copilului este transcrierea automată a vorbirii unui copil de 10 ani. Poate avea greșeli de recunoaștere (cuvinte auzite greșit, nume scrise după auz, fără diacritice, fără punctuație, cuvinte de umplutură). Judecă sensul, nu forma, și acceptă cuvintele proprii ale copilului.
+
+Titlul lecției: {{title}}
+
+Ideile cheie (JSON, cu cuvinte cheie orientative):
+{{ideas}}
+
+Ce a povestit copilul:
+<<<
+{{transcript}}
+>>>
+
+Pentru fiecare idee alege "status":
+- "covered": copilul a spus ideea, chiar cu alte cuvinte sau cu mici greșeli de recunoaștere.
+- "partial": a spus doar o parte importantă a ideii (de exemplu locul, dar nu și ce s-a întâmplat acolo).
+- "missed": nu a spus nimic despre această idee.
+- "wrong": a spus ceva despre această idee, dar greșit (alt loc, alt număr, altă persoană).
+"evidence": fragmentul exact din ce a povestit copilul pe care te bazezi; gol dacă ideea e "missed".
+"note": o observație scurtă pentru părinte, doar dacă e utilă; altfel gol.
+"praise": o singură propoziție, cel mult 15 cuvinte, care laudă concret ceva ce a spus copilul. Dacă nu a spus nimic despre lecție, laudă efortul.
+
+Include toate ideile, o singură dată fiecare, în ordine.
+Răspunde DOAR cu JSON, exact în această formă:
+{"ideas":[{"id":"i1","status":"covered","evidence":"...","note":""}],"praise":"..."}

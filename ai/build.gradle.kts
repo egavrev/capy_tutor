@@ -1,5 +1,5 @@
 // :ai is plain Kotlin/JVM: the LlmProvider / SpeechToText / TextToSpeech interfaces,
-// the provider router and the Groq HTTP adapters (milestone M2).
+// the JSON caller (retry once on an invalid reply) and the Groq HTTP adapters.
 plugins {
     alias(libs.plugins.kotlin.jvm)
 }
@@ -16,6 +16,8 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":core"))
+    api(project(":core"))
+    api(libs.kotlinx.coroutines.core)
+    implementation(libs.okhttp)
     testImplementation(libs.junit)
 }
