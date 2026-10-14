@@ -264,7 +264,7 @@ class SafeHintsTest {
         val leaky = testPack.ideas[0].copy(broadQuestion = "Primii oameni au trăit în Africa?", clue = "Se numește Africa.")
         val h = SafeHints.of(leaky)
         assertEquals("Pe ce continent au trăit primii oameni?", h.broadQuestion)
-        assertEquals("Primul cuvânt important din răspuns începe cu litera „A”.", h.clue)
+        assertEquals("Completează: „Primii oameni au trăit în ….”", h.clue)
         assertTrue(h.broadReplaced && h.clueReplaced)
     }
 
@@ -273,6 +273,21 @@ class SafeHintsTest {
         val h = SafeHints.of(testPack.ideas[1])
         assertEquals(testPack.ideas[1].clue, h.clue)
         assertFalse(h.clueReplaced)
+    }
+
+    @Test
+    fun clozeBlanksTheDetailsNotAlreadyAsked() {
+        val lucy = PackIdea(
+            "i3", 2, "Lucy este o fosilă găsită în Etiopia, veche de 3,2 milioane de ani.",
+            listOf(listOf("Lucy", "Lusi"), listOf("Etiopia"), listOf("3,2 milioane")), "q", "c", "e", "q", "a",
+        )
+        assertEquals("Completează: „… este o fosilă găsită în …, veche de … de ani.”", SafeHints.clozeClue(lucy, "Ce știi despre cea mai cunoscută fosilă?"))
+        assertEquals("Completează: „Lucy este o fosilă găsită în …, veche de … de ani.”", SafeHints.clozeClue(lucy, "Ce știi despre Lucy?"))
+        val seasons = PackIdea(
+            "i6", 5, "Anotimpurile apar pentru că axa Pământului este înclinată.",
+            listOf(listOf("anotimpuri"), listOf("axa", "axă"), listOf("înclinată", "înclinare")), "q", "c", "e", "q", "a",
+        )
+        assertEquals("Completează: „Anotimpurile apar pentru că … Pământului este ….”", SafeHints.clozeClue(seasons, "De ce apar anotimpurile pe Pământ?"))
     }
 
     @Test

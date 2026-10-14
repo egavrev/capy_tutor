@@ -58,6 +58,12 @@ class ModelSessionAi(private val router: ProviderRouter) : SessionAi {
                 },
                 "question" to question,
                 "answer" to answer,
+                "tiebreak" to when (purpose) {
+                    // In the hint ladder "partial" just means one more gentle hint.
+                    Purpose.HINT -> "Când ezitezi între \"covered\" și \"partial\", alege \"partial\"."
+                    // In the test a short correct answer counts.
+                    Purpose.TEST -> "Când răspunsul e corect dar scurt, alege \"covered\"."
+                },
             ),
         )
         return router.callJson(CoreConfig.ASSESS_ANSWER, user) { Schemas.parseAnswer(it) }.toReply()

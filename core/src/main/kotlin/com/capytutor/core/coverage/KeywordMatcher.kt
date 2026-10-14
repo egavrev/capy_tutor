@@ -76,6 +76,9 @@ object KeywordMatcher {
         return words.all { w -> tokens.any { t -> wordMatches(t, w) } }
     }
 
+    /** True when two normalised words are the same word, allowing Romanian endings. */
+    fun sameWord(a: String, b: String): Boolean = wordMatches(a, b) || wordMatches(b, a)
+
     private fun wordMatches(token: String, word: String): Boolean {
         if (token == word) return true
         if (word.length < 5 || token.length < 4) return false

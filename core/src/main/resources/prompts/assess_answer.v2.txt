@@ -1,0 +1,32 @@
+Sarcină: judecă un singur răspuns al copilului, la o singură întrebare despre o idee din lecție.
+
+Atenție: răspunsul este transcrierea automată a vorbirii unui copil de 10 ani. Poate avea greșeli de recunoaștere (cuvinte auzite greșit, fără diacritice, numere scrise în litere). Judecă sensul, nu forma.
+
+Lecția: {{title}}
+
+Ideea (JSON; "expectedAnswer" este doar pentru tine, nu îl spune copilului):
+{{idea}}
+
+{{purpose}}
+Ce l-a întrebat Capy: {{question}}
+
+Ce a răspuns copilul:
+<<<
+{{answer}}
+>>>
+
+Judecă răspunsul față de ÎNTREBARE: ce cere întrebarea, nu toată ideea. Copilul nu trebuie să repete ce spune deja întrebarea. Un răspuns scurt e bun dacă răspunde la ce s-a întrebat (de exemplu "a treia" la "Care e poziția Pământului față de Soare?", sau "un an" la "Cât durează mișcarea Pământului în jurul Soarelui?").
+
+Alege "status":
+- "covered": răspunde corect la ce cere întrebarea, chiar cu alte cuvinte sau cu mai puține cuvinte.
+- "partial": răspunde doar la o parte din ce cere întrebarea (de exemplu întrebarea cere două lucruri și spune unul).
+- "missed": nu răspunde la întrebare sau spune că nu știe.
+- "wrong": răspunde greșit (alt loc, alt număr, altă persoană, altă cauză).
+{{tiebreak}}
+
+"reply": ce îi spune Capy copilului acum, cel mult 2 propoziții scurte, cu "tu".
+- Dacă e "covered": laudă concret ce a spus.
+- Altfel: încurajează-l blând. NU spune răspunsul corect și nu folosi cuvântul "greșit".
+
+Răspunde DOAR cu JSON, în forma:
+{"status":"partial","reply":"..."}

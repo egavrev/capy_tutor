@@ -183,7 +183,7 @@ class SessionEngine(private val pack: LessonPack) {
             HintStep.BROAD, HintStep.CLUE ->
                 if (covered) {
                     val done = s.withResult(req.ideaId) { it.copy(outcome = Outcome.RECALLED_WITH_HINT) }
-                    nextGap(done.copy(mood = CapyMood.HAPPY), modelOr(a, CapyLines.RECALLED))
+                    nextGap(done.copy(mood = CapyMood.HAPPY), modelOr(a, if (s.hintStep == HintStep.CLUE) CapyLines.RECALLED_WITH_CLUE else CapyLines.RECALLED))
                 } else {
                     val next = if (s.hintStep == HintStep.BROAD) HintStep.CLUE else HintStep.EXPLAIN
                     askHint(s.copy(hintStep = next, disputable = req.ideaId), CapyLines.NOT_YET_LOOK_TOGETHER)

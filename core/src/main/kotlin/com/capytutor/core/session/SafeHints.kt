@@ -20,8 +20,34 @@ data class SafeHints(val broadQuestion: String, val clue: String, val broadRepla
                 else -> GENERIC_BROAD
             }
             val clueLeaks = KeywordMatcher.revealedWord(idea.clue, idea.checkAnswer) != null
-            val clue = if (clueLeaks) letterClue(idea.checkAnswer) else idea.clue
+            val clue = if (clueLeaks) clozeClue(idea, broad) ?: letterClue(idea.checkAnswer) else idea.clue
             return SafeHints(broad, clue, broadLeaks, clueLeaks)
+        }
+
+        /**
+         * A fill-in-the-blank of the idea: the words of every keyword group not already named in
+         * [asked] become "…". "Anotimpurile apar pentru că … Pământului este …." Null when
+         * nothing (or everything) would be blanked.
+         */
+        fun clozeClue(idea: PackIdea, asked: String): String? {
+            val q = KeywordMatcher.normalize(asked)
+            val hidden = idea.keywords.filterNot { KeywordMatcher.groupMatches(q, it) }
+                .flatten()
+                .flatMap { KeywordMatcher.normalize(it).split(' ') }
+                .filter { it.length >= 3 || (it.isNotEmpty() && it.all(Char::isDigit)) }
+                .toSet()
+            if (hidden.isEmpty()) return null
+            var words = 0
+            var blanks = 0
+            val text = Regex("[\\p{L}\\p{N}]+(?:,[0-9]+)?%?|[^\\p{L}\\p{N}]+").findAll(idea.text).joinToString("") { m ->
+                val tok = m.value
+                if (!tok.first().isLetterOrDigit()) return@joinToString tok
+                words++
+                val parts = KeywordMatcher.normalize(tok).split(' ').filter { it.isNotEmpty() }
+                if (parts.any { p -> hidden.any { h -> KeywordMatcher.sameWord(p, h) } }) { blanks++; "…" } else tok
+            }
+            if (blanks == 0 || blanks == words) return null
+            return "Completează: „" + text.trim().replace(Regex("…(?:\\s+…)+"), "…") + "”"
         }
 
         const val GENERIC_BROAD = "Ce îți mai amintești din lecție despre partea asta?"
@@ -37,6 +63,6 @@ data class SafeHints(val broadQuestion: String, val clue: String, val broadRepla
         }
 
         const val GENERIC_CLUE = "Gândește-te la ce ai citit în lecție despre asta."
-        private val skip = setOf("este", "sunt", "care", "pentru", "aproximativ", "adica", "foarte", "acum")
+        private val skip = setOf("este", "sunt", "care", "pentru", "aproximativ", "aproape", "adica", "foarte", "acum", "doar")
     }
 }
