@@ -39,9 +39,12 @@ jobs:
         run: |
           if [ -z "$GROQ_API_KEY" ]; then
             echo "::error::Add the GROQ_API_KEY repository secret first (Settings → Secrets and variables → Actions)."
+            mkdir -p testbench-out && echo "GROQ_API_KEY repository secret is missing" > testbench-out/ERROR.txt
             exit 1
           fi
-          ./gradlew --no-daemon -q :testbench:run --args="$BENCH_ARGS --out testbench-out"
+          mkdir -p testbench-out
+          set -o pipefail
+          ./gradlew --no-daemon -q :testbench:run --args="$BENCH_ARGS --out testbench-out" 2>&1 | tee testbench-out/console.txt
 
       - uses: actions/upload-artifact@v4
         if: always()

@@ -51,12 +51,25 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           mkdir -p /tmp/out
+          # Unit test counts, so the result can be read from the builds branch.
+          python3 - > /tmp/tests.txt <<'PY'
+          import glob, xml.etree.ElementTree as ET
+          from collections import defaultdict
+          t = defaultdict(lambda: [0, 0, 0])
+          for f in glob.glob('**/build/test-results/**/*.xml', recursive=True):
+              r = ET.parse(f).getroot(); m = f.split('/build/')[0]
+              n, fl, er = int(r.get('tests', 0)), int(r.get('failures', 0)), int(r.get('errors', 0))
+              t[m][0] += n; t[m][1] += fl + er
+          for m, (n, bad, _) in sorted(t.items()):
+              print(f"Unit tests {m}: {n - bad} passed, {bad} failed")
+          PY
           cp app/build/outputs/apk/debug/*-debug.apk /tmp/out/capy-tutor-debug.apk
           if ls app/build/outputs/apk/release/*-release.apk >/dev/null 2>&1; then
             cp app/build/outputs/apk/release/*-release.apk /tmp/out/capy-tutor.apk
           fi
           cd /tmp/out
           printf 'Built from %s on %s\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%MZ)" > BUILD.txt
+          cat /tmp/tests.txt >> BUILD.txt
           git init -q -b builds
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
