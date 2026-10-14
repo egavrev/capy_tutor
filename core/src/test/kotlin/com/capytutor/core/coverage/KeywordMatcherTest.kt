@@ -77,5 +77,6 @@ class RomanianNumbersTest {
         assertEquals("2", KeywordMatcher.revealedWord("Acum două milioane și jumătate de ani", "2,5 milioane de ani"))
         assertEquals(null, KeywordMatcher.revealedWord("Este un continent cald, cu savane.", "în Africa"))
         assertEquals(null, KeywordMatcher.revealedWord("Începe cu litera P.", "paleolitic"))
+        assertEquals(null, KeywordMatcher.revealedWord("Un ciclu complet al anotimpurilor.", "365 de zile, adică un an"))
     }
 }

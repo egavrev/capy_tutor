@@ -41,7 +41,8 @@ object KeywordMatcher {
     fun revealedWord(hint: String, answer: String): String? {
         val hintTokens = normalize(hint).split(' ').filter { it.isNotEmpty() }
         return normalize(answer).split(' ')
-            .filter { it.length >= 4 && it !in stopWords || it.all(Char::isDigit) }
+            // Digits count, except "1": it is usually the article "un"/"o", not a number.
+            .filter { it.length >= 4 && it !in stopWords || (it.all(Char::isDigit) && it != "1") }
             .firstOrNull { w -> hintTokens.any { t -> wordMatches(t, w) } }
     }
 
