@@ -19,7 +19,7 @@ The latest APKs are on the [`builds`](../../tree/builds) branch:
 
 The screenshots are on the [`screenshots`](../../tree/screenshots) branch.
 
-To build on the Mac anyway (optional): JDK 17 and the Android SDK command-line tools, for example `brew install openjdk@17 android-commandlinetools`, then `./gradlew test assembleDebug`.
+To build the app on the Mac anyway (optional): Java 17 (see the test bench section) plus the Android SDK command-line tools with `ANDROID_HOME` set, then `./gradlew test assembleDebug`.
 
 ## Test bench (milestone M1)
 
@@ -27,14 +27,23 @@ To build on the Mac anyway (optional): JDK 17 and the Android SDK command-line t
 
 **On GitHub (no setup on the Mac):** add the `GROQ_API_KEY` repository secret once, then *Actions → Test bench (Groq) → Run workflow*. Reports land on the [`testbench`](../../tree/testbench) branch (`SUMMARY.md` first).
 
-**On the Mac (optional, needs JDK 17):** put the key in `secrets.properties` (or `export GROQ_API_KEY=...`), then:
+**On the Mac (needs only Java 17, no Android SDK):**
 
-```
-./gradlew :testbench:run --args="all"                       # everything, reports in tools/testbench/out/
-./gradlew :testbench:run --args="enrich lessons/istorie/SAMPLE-aparitia-omului.md"
-./gradlew :testbench:run --args="assess <lesson.md> <retellings.md>"
-./gradlew :testbench:run --args="transcribe recording.m4a --lesson <lesson.md>"
-```
+1. Install Java 17 once, and register it with macOS (Homebrew does not do that by itself):
+   ```
+   brew install openjdk@17
+   sudo ln -sfn /opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-17.jdk
+   java -version          # should print: openjdk version "17..."
+   ```
+2. Put the key in `secrets.properties` in this folder (or `export GROQ_API_KEY=...`).
+3. From this folder:
+   ```
+   ./gradlew :testbench:run --args="all"                       # everything, reports in tools/testbench/out/
+   ./gradlew :testbench:run --args="enrich lessons/istorie/SAMPLE-aparitia-omului.md"
+   ./gradlew :testbench:run --args="assess <lesson.md> <retellings.md>"
+   ./gradlew :testbench:run --args="transcribe recording.m4a --lesson <lesson.md>"
+   ```
+   The first run downloads Gradle and the libraries (a few minutes). Without the Android SDK, Gradle says so and builds only `core`, `ai` and `testbench`; the app itself is built on GitHub Actions.
 
 Enrichment is cached per lesson (`--fresh` regenerates it). Only sample texts go to Groq; the key is never printed. Recordings of Vali's voice stay on the Mac: run `transcribe` there, never in the public repo.
 

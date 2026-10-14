@@ -83,6 +83,29 @@ jobs:
           name: build-reports
           path: '**/build/reports/'
 
+  # The owner's setup: a Mac with Java 17 and no Android SDK. The test bench must build and run there.
+  mac-without-android-sdk:
+    runs-on: macos-latest
+    env:
+      ANDROID_HOME: ''
+      ANDROID_SDK_ROOT: ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Unit tests of the plain-Kotlin modules
+        run: ./gradlew --no-daemon :core:test :ai:test :testbench:test
+
+      - name: Test bench starts (the same command as in the README)
+        run: |
+          ./gradlew --no-daemon -q --console=plain :testbench:run --args="--help" | tee help.txt
+          grep -q "Capy Tutor test bench" help.txt
+          ./gradlew --no-daemon -q --console=plain projects | tee projects.txt
+
   # Installs the debug APK on an Android 13 emulator (Vali's Galaxy Note 20 Ultra runs Android 13)
   # and takes screenshots in light mode, dark mode and at 130% font size.
   screenshots:
