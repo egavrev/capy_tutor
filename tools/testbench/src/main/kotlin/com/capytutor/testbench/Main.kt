@@ -9,7 +9,15 @@ import com.capytutor.core.lesson.Lesson
 import com.capytutor.core.lesson.LessonParser
 import com.capytutor.core.lesson.ParseResult
 import com.capytutor.core.pack.LessonPack
+import com.capytutor.ai.InMemoryUsage
+import com.capytutor.ai.ModelSessionAi
+import com.capytutor.ai.ProviderRouter
 import com.capytutor.core.safety.SafetyFilter
+import com.capytutor.core.session.Input
+import com.capytutor.core.session.Phase
+import com.capytutor.core.session.SessionCodec
+import com.capytutor.core.session.SessionRunner
+import com.capytutor.core.session.SessionState
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import kotlin.system.exitProcess
@@ -22,6 +30,9 @@ Capy Tutor test bench
   enrich <lesson.md>                    generate keywords, hints and questions for a lesson
   assess <lesson.md> <retellings.md>    judge each retelling against the lesson's key ideas
   transcribe <audio> [--lesson <md>]    Groq Whisper, Romanian
+  session <lesson.md> <script.md>       a whole session with a scripted child; writes the conversation
+  sessions                              session for every SAMPLE lesson with tools/testbench/samples/<lesson>.session.md
+  play <lesson.md> [--resume]           a whole session where YOU type as the child (Terminal)
 
 Options:
   --out <dir>          where reports go (default tools/testbench/out)
@@ -37,6 +48,7 @@ private class Options(args: List<String>) {
     val positional = mutableListOf<String>()
     var out = File("tools/testbench/out")
     var fresh = false
+    var resume = false
     var lessonForPrompt: File? = null
     val childNames = mutableListOf<String>()
 
@@ -46,6 +58,7 @@ private class Options(args: List<String>) {
             when (val a = it.next()) {
                 "--out" -> out = File(it.next())
                 "--fresh" -> fresh = true
+                "--resume" -> resume = true
                 "--lesson" -> lessonForPrompt = File(it.next())
                 "--child-name" -> childNames += it.next()
                 "--set" -> it.next().split('=', limit = 2).let { (k, v) -> CoreConfig.set(k.trim(), v.trim()) }
@@ -82,6 +95,8 @@ fun main(args: Array<String>) {
         )
     }
     val bench = Bench(llmFor, SafetyFilter(opts.childNames))
+    val usage = InMemoryUsage()
+    val sessionAi = ModelSessionAi(ProviderRouter({ Groq.forRoute(it, { key }, transport) }, usage))
 
     val ok = runBlocking {
         when (command) {
@@ -89,6 +104,9 @@ fun main(args: Array<String>) {
             "assess" -> assessCommand(bench, opts, file(opts, 1), file(opts, 2)) != null
             "all" -> allCommand(bench, opts)
             "transcribe" -> transcribeCommand(key, transport, opts, file(opts, 1))
+            "session" -> sessionCommand(bench, sessionAi, opts, file(opts, 1), file(opts, 2))
+            "sessions" -> sessionsCommand(bench, sessionAi, opts)
+            "play" -> playCommand(bench, sessionAi, opts, file(opts, 1))
             else -> { println(USAGE); false }
         }
     }
@@ -169,4 +187,69 @@ private suspend fun transcribeCommand(key: String, transport: OkHttpTransport, o
     File(opts.out, "${audio.nameWithoutExtension}.transcribe.md").writeText(report)
     println(line)
     return r is SttResult.Ok
+}
+
+private suspend fun sessionCommand(bench: Bench, ai: ModelSessionAi, opts: Options, lessonFile: File, scriptFile: File): Boolean {
+    val pack = enrichCommand(bench, opts, lessonFile) ?: return false
+    val runner = SessionRunner(pack, ai, SafetyFilter(opts.childNames))
+    val log = StringBuilder()
+    val driver = SessionDriver(runner, pack, print = { println(it); log.appendLine(it) })
+    val script = SessionScript(scriptFile.readText())
+    println("\n=== ${pack.title} (scripted session)")
+    var state = driver.begin(null)
+    var guard = 0
+    while (state.phase != Phase.DONE && guard++ < 200) {
+        state = driver.step(state, script.next(state), waitOnPause = true)
+    }
+    File(opts.out, "${lessonFile.nameWithoutExtension}.session.md").writeText(driver.report(state, pack.title))
+    println("Report: ${File(opts.out, "${lessonFile.nameWithoutExtension}.session.md").path}")
+    return state.phase == Phase.DONE
+}
+
+private suspend fun sessionsCommand(bench: Bench, ai: ModelSessionAi, opts: Options): Boolean {
+    val lessons = File("lessons").walk().filter { it.isFile && it.name.startsWith("SAMPLE-") && it.extension == "md" }.sortedBy { it.path }.toList()
+    var ok = lessons.isNotEmpty()
+    for (lesson in lessons) {
+        val script = File("tools/testbench/samples/${lesson.nameWithoutExtension}.session.md")
+        if (!script.isFile) { println("${lesson.name}: no session script, skipped"); continue }
+        if (!sessionCommand(bench, ai, opts, lesson, script)) ok = false
+    }
+    return ok
+}
+
+private suspend fun playCommand(bench: Bench, ai: ModelSessionAi, opts: Options, lessonFile: File): Boolean {
+    val pack = enrichCommand(bench, opts, lessonFile) ?: return false
+    val runner = SessionRunner(pack, ai, SafetyFilter(opts.childNames))
+    val saved = File(opts.out, "${lessonFile.nameWithoutExtension}.play.json")
+    val driver = SessionDriver(runner, pack, save = { saved.writeText(SessionCodec.encode(it)) }, echoChild = false)
+    println(
+        """
+        |
+        |Capy Tutor · ${pack.title}
+        |Scrie ca și cum ai fi copilul, apoi Enter.
+        |  Enter gol   = butonul principal (Hai să începem / Mai departe / Gata pe azi)
+        |  /gata       = Gata, am terminat (după ce ai povestit)
+        |  /nustiu     = Nu știu
+        |  /dreptate   = Cred că am dreptate
+        |  /stop       = ieșire (sesiunea rămâne salvată; reiei cu --resume)
+        |""".trimMargin(),
+    )
+    val resumeFrom = if (opts.resume && saved.isFile) {
+        runCatching { SessionCodec.decode(saved.readText()) }.getOrNull()?.takeIf { it.lessonSha256 == pack.lessonSha256 && it.phase != Phase.DONE }
+    } else {
+        null
+    }
+    var state: SessionState = driver.begin(resumeFrom)
+    if (resumeFrom != null) state.turns.takeLast(3).forEach { println("  ${if (it.speaker.name == "CAPY") "Capy" else "Copilul"}: ${it.text}") }
+    while (state.phase != Phase.DONE) {
+        if (state.paused != null) println("(Capy e în pauză. Enter = Continuăm)")
+        print("> ")
+        System.out.flush()
+        val line = readlnOrNull() ?: break
+        val input = TypedInput.parse(line) ?: break
+        state = driver.step(state, if (state.paused != null) Input.Resume else input, waitOnPause = false)
+    }
+    File(opts.out, "${lessonFile.nameWithoutExtension}.play.md").writeText(driver.report(state, pack.title))
+    println("\nConversația e salvată în ${File(opts.out, "${lessonFile.nameWithoutExtension}.play.md").path}")
+    return true
 }

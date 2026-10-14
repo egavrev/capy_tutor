@@ -30,6 +30,8 @@ application {
 tasks.named<JavaExec>("run") {
     // Paths on the command line are relative to the repository root.
     workingDir = rootProject.projectDir
+    // `play` reads what you type.
+    standardInput = System.`in`
 }
 
 dependencies {

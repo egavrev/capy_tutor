@@ -91,6 +91,20 @@ object Groq {
         }
         return OpenAiCompatibleLlm("groq", model, baseUrl, apiKey, transport, timeoutMs, extra)
     }
+
+    /** A Groq model for one configured route, with that call type's timeout and reasoning effort. */
+    fun forRoute(route: com.capytutor.core.config.Route, apiKey: () -> String, transport: HttpTransport): OpenAiCompatibleLlm {
+        require(route.provider == "groq") { "Not a Groq route: ${route.id}" }
+        val cfg = com.capytutor.core.config.CoreConfig
+        return chat(
+            model = route.model,
+            apiKey = apiKey,
+            transport = transport,
+            baseUrl = cfg.get("groq.baseUrl") ?: DEFAULT_BASE_URL,
+            timeoutMs = cfg.timeoutMs(route.callType),
+            reasoningEffort = cfg.reasoningEffort(route.callType, route.provider),
+        )
+    }
 }
 
 /** Turns an HTTP answer into an [LlmResult]. Pure, so it is tested with recorded replies. */

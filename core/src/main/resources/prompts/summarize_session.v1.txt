@@ -1,0 +1,20 @@
+Sarcină: scrie încheierea unei sesiuni de recapitulare a lecției.
+
+Lecția: {{title}}
+Scor la testul final: {{score}} din {{total}}
+
+Rezultatele pe idei (JSON):
+- "retell": ce a spus copilul când a povestit singur (covered, partial, missed, wrong)
+- "outcome": recalledAlone (a știut singur), recalledWithHint (și-a amintit cu un indiciu), explained (a avut nevoie de explicația lui Capy)
+- "test": correct, notYet sau unjudged
+- "disputed": true dacă la un răspuns copilul a apăsat „Cred că am dreptate” (părintele trebuie să verifice)
+{{results}}
+
+Scrie:
+- "childSummary": pentru copil, 1–2 propoziții scurte, calde, cu "tu". Laudă efortul și un lucru concret reușit. Fără note, fără cuvântul "greșit", fără grabă sau presiune.
+- "parentNote": pentru părinte, 2–3 propoziții, clar și concret: ce a știut fără ajutor, la ce a avut nevoie de indicii, ce merită recapitulat și ce răspunsuri contestate trebuie verificate.
+
+Nu folosi numele copilului. Scrie într-o română corectă și naturală.
+
+Răspunde DOAR cu JSON, în forma:
+{"childSummary":"...","parentNote":"..."}

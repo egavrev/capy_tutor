@@ -10,6 +10,8 @@ object Prompts {
     const val SYSTEM = "system"
     const val ENRICH_IDEAS = "enrich_ideas"
     const val ASSESS_RECALL = "assess_recall"
+    const val ASSESS_ANSWER = "assess_answer"
+    const val SUMMARIZE_SESSION = "summarize_session"
 
     private val placeholder = Regex("\\{\\{\\s*([a-zA-Z0-9_]+)\\s*}}")
 

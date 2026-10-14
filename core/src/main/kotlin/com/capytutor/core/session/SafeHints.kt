@@ -1,0 +1,42 @@
+package com.capytutor.core.session
+
+import com.capytutor.core.RomanianText
+import com.capytutor.core.coverage.KeywordMatcher
+import com.capytutor.core.pack.PackIdea
+
+/**
+ * The hint ladder must not give the answer before step 3 (HANDOFF.md §3). The generated broad
+ * question and clue usually respect that, but not always (test bench, M1). This checks each one
+ * on the phone and replaces a hint that contains a word of the answer with a safe one.
+ */
+data class SafeHints(val broadQuestion: String, val clue: String, val broadReplaced: Boolean, val clueReplaced: Boolean) {
+    companion object {
+        fun of(idea: PackIdea): SafeHints {
+            val broadLeaks = KeywordMatcher.revealedWord(idea.broadQuestion, idea.checkAnswer) != null
+            val checkLeaks = KeywordMatcher.revealedWord(idea.checkQuestion, idea.checkAnswer) != null
+            val broad = when {
+                !broadLeaks -> idea.broadQuestion
+                !checkLeaks -> idea.checkQuestion
+                else -> GENERIC_BROAD
+            }
+            val clueLeaks = KeywordMatcher.revealedWord(idea.clue, idea.checkAnswer) != null
+            val clue = if (clueLeaks) letterClue(idea.checkAnswer) else idea.clue
+            return SafeHints(broad, clue, broadLeaks, clueLeaks)
+        }
+
+        const val GENERIC_BROAD = "Ce îți mai amintești din lecție despre partea asta?"
+
+        /** "Răspunsul începe cu litera E." or, for a number, "Răspunsul conține un număr." */
+        fun letterClue(answer: String): String {
+            val words = answer.split(Regex("[\\s,.;:!?„”\"()]+")).filter { it.isNotBlank() }
+            if (words.any { w -> w.any(Char::isDigit) }) return "Răspunsul conține un număr. Gândește-te la el."
+            val content = words.firstOrNull { w -> RomanianText.foldForMatching(w).let { it.length >= 4 && it !in skip } }
+                ?: words.firstOrNull()
+                ?: return GENERIC_CLUE
+            return "Primul cuvânt important din răspuns începe cu litera „${content.first().uppercaseChar()}”."
+        }
+
+        const val GENERIC_CLUE = "Gândește-te la ce ai citit în lecție despre asta."
+        private val skip = setOf("este", "sunt", "care", "pentru", "aproximativ", "adica", "foarte", "acum")
+    }
+}

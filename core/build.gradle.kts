@@ -18,4 +18,5 @@ kotlin {
 dependencies {
     api(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.core) // runBlocking in session tests
 }

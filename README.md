@@ -2,7 +2,7 @@
 
 A calm Android study buddy: Vali retells a lesson by voice, Capy finds what she missed, helps her remember it, and asks one question per key idea. Kotlin, Jetpack Compose, Groq's free AI. UI name: *Capy Tutore*.
 
-**Status:** milestone M1 (test bench). The app still opens on the themed, empty Acasă screen; the AI pieces are tested from the command line. See `HANDOFF.md` §12 for the milestones.
+**Status:** milestone M2 (core). The whole session (retelling, hints, test, summary) runs in the Terminal with `play`; the phone app still shows only the themed Acasă screen until M3. See `HANDOFF.md` §12 for the milestones.
 
 ## Getting the APK
 
@@ -21,7 +21,7 @@ The screenshots are on the [`screenshots`](../../tree/screenshots) branch.
 
 To build the app on the Mac anyway (optional): Java 17 (see the test bench section) plus the Android SDK command-line tools with `ANDROID_HOME` set, then `./gradlew test assembleDebug`.
 
-## Test bench (milestone M1)
+## Test bench (milestones M1–M2)
 
 `tools/testbench` runs the real prompts against Groq's free plan with the sample lessons (`lessons/**/SAMPLE-*.md`) and sample retellings (`tools/testbench/samples/`), and writes Markdown reports: the generated keywords, hints and questions per idea, each retelling's status per idea next to the parent's mark, latency and tokens.
 
@@ -42,6 +42,15 @@ To build the app on the Mac anyway (optional): Java 17 (see the test bench secti
    ./gradlew :testbench:run --args="enrich lessons/istorie/SAMPLE-aparitia-omului.md"
    ./gradlew :testbench:run --args="assess <lesson.md> <retellings.md>"
    ./gradlew :testbench:run --args="transcribe recording.m4a --lesson <lesson.md>"
+   ```
+   **Try a whole session yourself, typing as Vali** (Enter gol = butonul principal, `/gata`, `/nustiu`, `/dreptate`, `/stop`):
+   ```
+   ./gradlew -q --console=plain :testbench:run --args="play lessons/istorie/SAMPLE-aparitia-omului.md"
+   ./gradlew -q --console=plain :testbench:run --args="play lessons/istorie/SAMPLE-aparitia-omului.md --resume"
+   ```
+   Scripted sessions (a pretend child, from `tools/testbench/samples/*.session.md`) write the whole conversation to a report:
+   ```
+   ./gradlew :testbench:run --args="sessions"
    ```
    The first run downloads Gradle and the libraries (a few minutes). Without the Android SDK, Gradle says so and builds only `core`, `ai` and `testbench`; the app itself is built on GitHub Actions.
 

@@ -1,0 +1,30 @@
+Sarcină: judecă un singur răspuns al copilului, despre o singură idee din lecție.
+
+Atenție: răspunsul este transcrierea automată a vorbirii unui copil de 10 ani. Poate avea greșeli de recunoaștere (cuvinte auzite greșit, fără diacritice, numere scrise în litere). Judecă sensul, nu forma.
+
+Lecția: {{title}}
+
+Ideea (JSON; "expectedAnswer" este doar pentru tine, nu îl spune copilului):
+{{idea}}
+
+{{purpose}}
+Ce l-a întrebat Capy: {{question}}
+
+Ce a răspuns copilul:
+<<<
+{{answer}}
+>>>
+
+Alege "status":
+- "covered": răspunsul spune ce cere întrebarea despre această idee, cu toate detaliile esențiale cerute, chiar cu alte cuvinte.
+- "partial": spune doar o parte din ce se cere.
+- "missed": nu răspunde la întrebare sau spune că nu știe.
+- "wrong": răspunde greșit (alt loc, alt număr, altă persoană, altă cauză).
+Când ezitezi între "covered" și "partial", alege "partial".
+
+"reply": ce îi spune Capy copilului acum, cel mult 2 propoziții scurte, cu "tu".
+- Dacă e "covered": laudă concret ce a spus.
+- Altfel: încurajează-l blând. NU spune răspunsul corect și nu folosi cuvântul "greșit".
+
+Răspunde DOAR cu JSON, în forma:
+{"status":"partial","reply":"..."}

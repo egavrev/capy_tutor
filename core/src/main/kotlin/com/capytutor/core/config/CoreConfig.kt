@@ -38,12 +38,20 @@ object CoreConfig {
 
     fun clearOverrides() = overrides.clear()
 
-    fun route(callType: String): Route {
+    /** The providers for [callType], in the order to try them. */
+    fun routes(callType: String): List<Route> {
         val value = get(callType) ?: error("No provider configured for $callType")
-        val slash = value.indexOf('/')
-        require(slash > 0 && slash < value.length - 1) { "Bad route for $callType: $value" }
-        return Route(callType, value.substring(0, slash), value.substring(slash + 1))
+        return value.split(',').map { it.trim() }.filter { it.isNotEmpty() }.map { entry ->
+            val slash = entry.indexOf('/')
+            require(slash > 0 && slash < entry.length - 1) { "Bad route for $callType: $entry" }
+            Route(callType, entry.substring(0, slash), entry.substring(slash + 1))
+        }
     }
+
+    fun route(callType: String): Route = routes(callType).first()
+
+    fun timeoutMs(callType: String): Long =
+        (get("$callType.timeoutMs") ?: get("timeoutMs"))?.toLongOrNull() ?: 20_000L
 
     fun maxTokens(callType: String, default: Int = 800): Int = get("$callType.maxTokens")?.toIntOrNull() ?: default
 
