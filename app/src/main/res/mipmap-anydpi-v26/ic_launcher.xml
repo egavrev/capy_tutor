@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher icon: Capy's face from the design package on the soft pink tint. -->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/capy_soft" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>

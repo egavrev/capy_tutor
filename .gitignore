@@ -1,0 +1,21 @@
+# Secrets: never commit
+signing/
+*.jks
+*.keystore
+secrets.properties
+.env
+local.properties
+
+# Build output
+.gradle/
+build/
+**/build/
+*.apk
+*.aab
+captures/
+.kotlin/
+
+# IDE and OS
+.idea/
+*.iml
+.DS_Store

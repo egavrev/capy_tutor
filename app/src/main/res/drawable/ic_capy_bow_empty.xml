@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Two-tone bow not yet earned (Linen). Draw with Image(painterResource(...)), not Icon(), so the fill keeps its colour. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path
+        android:pathData="M10.5 10C7 6 3 6.5 3 9.5S7 13.5 10.5 12zM13.5 10C17 6 21 6.5 21 9.5S17 13.5 13.5 12zM10.5 9.25h3v3.5h-3zM10.8 12.75L8.5 19.5M13.2 12.75l2.3 6.75"
+        android:fillColor="@color/capy_inactive"
+        android:strokeColor="@color/capy_inactive_outline"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

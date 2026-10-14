@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Capy Tutore design system: light (default) colours -->
+<resources>
+    <color name="capy_background">#FFFEFAF7</color>  <!-- Screen background, under the floral paper -->
+    <color name="capy_surface">#FFFFFDFE</color>  <!-- Cards, bubbles, inputs -->
+    <color name="capy_text">#FF4A2F3A</color>  <!-- Primary text (Plum cocoa) -->
+    <color name="capy_text_secondary">#FF73505C</color>  <!-- Hints, metadata (Dusty mauve) -->
+    <color name="capy_primary">#FFA8456E</color>  <!-- Primary actions (Rose) -->
+    <color name="capy_on_primary">#FFFFFFFF</color>  <!-- Content on primary -->
+    <color name="capy_primary_pressed">#FF8C3A5E</color>  <!-- Primary, pressed -->
+    <color name="capy_secondary">#FF8F5A70</color>  <!-- Secondary actions (Mauve) -->
+    <color name="capy_on_secondary">#FFFFFFFF</color>  <!-- Content on secondary -->
+    <color name="capy_secondary_pressed">#FF74475A</color>  <!-- Secondary, pressed -->
+    <color name="capy_link">#FF8C3A5E</color>  <!-- Text buttons, links -->
+    <color name="capy_right">#FFFBD9E4</color>  <!-- Right answer (Blush pink) -->
+    <color name="capy_on_right">#FF8E2A55</color>  <!-- Content on right (Raspberry) -->
+    <color name="capy_right_accent">#FFF29BB8</color>  <!-- Bow fill on right -->
+    <color name="capy_wrong">#FFF7E7CE</color>  <!-- Wrong / not yet (Champagne) -->
+    <color name="capy_on_wrong">#FF6E4A1E</color>  <!-- Content on wrong (Toffee) -->
+    <color name="capy_wrong_accent">#FF9E7A40</color>  <!-- Wrong PIN dots -->
+    <color name="capy_inactive">#FFFAF0E6</color>  <!-- Disabled / locked (Linen) -->
+    <color name="capy_on_inactive">#FF7E6B60</color>  <!-- Content on inactive -->
+    <color name="capy_inactive_outline">#FFE2CFBE</color>  <!-- Inactive outline (Deep linen) -->
+    <color name="capy_reward">#FFF6BFD0</color>  <!-- Bow counter, reward (Cotton candy) -->
+    <color name="capy_on_reward">#FF4A2F3A</color>  <!-- Content on reward -->
+    <color name="capy_reward_banner">#FFFDE8EF</color>  <!-- Reward / info banner -->
+    <color name="capy_mic">#FFE75480</color>  <!-- Microphone (Dark pink) -->
+    <color name="capy_on_mic">#FFFFFFFF</color>  <!-- Icon on microphone -->
+    <color name="capy_line">#FFF1DCE3</color>  <!-- Dividers, borders -->
+    <color name="capy_soft">#FFFCE7EE</color>  <!-- Selected tint, active nav pill -->
+    <color name="capy_child_bubble">#FFF1E3EE</color>  <!-- Child chat bubble (Lilac pink) -->
+    <color name="capy_control_outline">#FFCDA7B6</color>  <!-- Radio rings, empty slots -->
+    <color name="capy_subject_history">#FFB7814A</color>  <!-- Subject dot: History -->
+    <color name="capy_subject_romanian">#FF8D7CC4</color>  <!-- Subject dot: Romanian -->
+    <color name="capy_subject_math">#FFA8456E</color>  <!-- Subject dot: Math -->
+    <color name="capy_scrim">#524A2F3A</color>  <!-- Scrim behind bottom sheets -->
+    <color name="capy_mic_ring_1">#29E75480</color>  <!-- Mic pulse, outer ring -->
+    <color name="capy_mic_ring_2">#4DE75480</color>  <!-- Mic pulse, inner ring -->
+</resources>

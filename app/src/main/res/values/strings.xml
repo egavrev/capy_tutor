@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Capy Tutore</string>
+
+    <!-- Acasă -->
+    <!-- M3 replaces this with "Bună, %1$s!" using the child's name from settings. -->
+    <string name="home_greeting">Bună!</string>
+    <string name="home_parent_mode">Mod părinte</string>
+    <string name="home_empty_title">Încă nu ai lecții</string>
+    <string name="home_empty_body">Când un părinte adaugă o lecție, o găsești aici. Capy te așteaptă.</string>
+</resources>

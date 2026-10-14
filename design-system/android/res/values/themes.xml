@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- XML theme for the splash screen, system bars and any View-based screens.
+     Compose screens use CapyTheme (compose/ui/theme/Theme.kt). -->
+<resources>
+    <style name="Theme.CapyTutore" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/capy_primary</item>
+        <item name="colorOnPrimary">@color/capy_on_primary</item>
+        <item name="colorPrimaryContainer">@color/capy_soft</item>
+        <item name="colorOnPrimaryContainer">@color/capy_text</item>
+        <item name="colorSecondary">@color/capy_secondary</item>
+        <item name="colorOnSecondary">@color/capy_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/capy_reward</item>
+        <item name="colorOnSecondaryContainer">@color/capy_on_reward</item>
+        <item name="colorTertiary">@color/capy_mic</item>
+        <item name="colorOnTertiary">@color/capy_on_mic</item>
+        <item name="colorError">@color/capy_on_wrong</item>
+        <item name="colorErrorContainer">@color/capy_wrong</item>
+        <item name="colorOnErrorContainer">@color/capy_on_wrong</item>
+        <item name="android:colorBackground">@color/capy_background</item>
+        <item name="colorOnBackground">@color/capy_text</item>
+        <item name="colorSurface">@color/capy_surface</item>
+        <item name="colorOnSurface">@color/capy_text</item>
+        <item name="colorOnSurfaceVariant">@color/capy_text_secondary</item>
+        <item name="colorOutline">@color/capy_control_outline</item>
+        <item name="colorOutlineVariant">@color/capy_line</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/capy_surface</item>
+        <item name="android:fontFamily">@font/nunito</item>
+        <item name="fontFamily">@font/nunito</item>
+    </style>
+</resources>
