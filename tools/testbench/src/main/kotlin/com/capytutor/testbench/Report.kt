@@ -1,6 +1,7 @@
 package com.capytutor.testbench
 
 import com.capytutor.core.config.CoreConfig
+import com.capytutor.core.coverage.KeywordMatcher
 import com.capytutor.core.lesson.Lesson
 import com.capytutor.core.pack.LessonPack
 import com.capytutor.core.prompts.Prompts
@@ -12,10 +13,12 @@ object Report {
 
     fun header(title: String): String = buildString {
         val chat = CoreConfig.route(CoreConfig.ASSESS_RECALL)
+        val enrich = CoreConfig.route(CoreConfig.ENRICH_IDEAS)
         appendLine("# $title")
         appendLine()
         appendLine(
-            "Model `${chat.id}` · reasoning `${CoreConfig.get("groq.reasoningEffort") ?: "default"}` · " +
+            "Model `${chat.id}` · reasoning: enrich `${CoreConfig.reasoningEffort(enrich.callType, enrich.provider) ?: "default"}`, " +
+                "assess `${CoreConfig.reasoningEffort(chat.callType, chat.provider) ?: "default"}` · " +
                 "prompts `system ${Prompts.version(Prompts.SYSTEM)}`, `enrich_ideas ${Prompts.version(Prompts.ENRICH_IDEAS)}`, " +
                 "`assess_recall ${Prompts.version(Prompts.ASSESS_RECALL)}` · " +
                 ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm z")),
@@ -27,20 +30,32 @@ object Report {
         append(header("Enrich: ${lesson.title}"))
         appendLine("${lesson.subject.label} · ${lesson.ideas.size} ideas · ${lesson.wordCount} words · `${outcome.record.outcome}` · " +
             "${outcome.record.latencyMs} ms · ${outcome.record.inputTokens} in / ${outcome.record.outputTokens} out tokens" +
-            if (outcome.record.rateLimitWaits > 0) " · ${outcome.record.rateLimitWaits} rate-limit waits" else "")
+            (if (outcome.record.rateLimitWaits > 0) " · ${outcome.record.rateLimitWaits} rate-limit waits" else "") +
+            (outcome.record.retryReason?.let { " · first reply rejected: $it" } ?: ""))
         appendLine()
         if (pack == null) {
             appendLine("**Enrichment failed:** ${outcome.error}")
             return@buildString
         }
-        appendLine("| Id | Idea (parent) | Keyword groups | Broad question | Clue | Explanation | Check question | Check answer |")
-        appendLine("|---|---|---|---|---|---|---|---|")
+        val leaks = pack.ideas.associate { i ->
+            i.id to listOfNotNull(
+                KeywordMatcher.revealedWord(i.broadQuestion, i.checkAnswer)?.let { "question: „$it”" },
+                KeywordMatcher.revealedWord(i.clue, i.checkAnswer)?.let { "clue: „$it”" },
+            )
+        }
+        val leaking = leaks.count { it.value.isNotEmpty() }
+        appendLine("**Hints that reveal the answer: $leaking of ${pack.ideas.size}** (the question or clue contains a word of the check answer).")
+        appendLine()
+        appendLine("| Id | Idea (parent) | Keyword groups | Broad question | Clue | Reveals answer? | Explanation | Check question | Check answer |")
+        appendLine("|---|---|---|---|---|---|---|---|---|")
         for (i in pack.ideas) {
             val kw = i.keywords.joinToString("<br>") { g -> g.joinToString(" / ") }
-            appendLine("| ${i.id} | ${cell(i.text)} | ${cell(kw)} | ${cell(i.broadQuestion)} | ${cell(i.clue)} | ${cell(i.explanation)} | ${cell(i.checkQuestion)} | ${cell(i.checkAnswer)} |")
+            val leak = leaks.getValue(i.id).joinToString("<br>").ifEmpty { "–" }
+            appendLine("| ${i.id} | ${cell(i.text)} | ${cell(kw)} | ${cell(i.broadQuestion)} | ${cell(i.clue)} | ${cell(leak)} | ${cell(i.explanation)} | ${cell(i.checkQuestion)} | ${cell(i.checkAnswer)} |")
         }
         appendLine()
-        appendLine("Keyword groups: each line is one concept; any of its forms counts. All groups present = keyword candidate *covered*.")
+        appendLine("Keyword groups: each line is one concept; any of its forms counts. All groups present = keyword candidate *covered*. " +
+            "A revealed word is flagged even when it only names the topic, so read the flagged rows.")
     }
 
     /** Known (covered) vs not known for each idea the parent marked. */
@@ -103,13 +118,13 @@ object Report {
 
         appendLine("## Calls")
         appendLine()
-        appendLine("| Retelling | Words | Latency | Tokens in / out | Attempts | Rate-limit waits | Outcome | Capy's praise |")
+        appendLine("| Retelling | Words | Latency | Tokens in / out | Retries | Rate-limit waits | Outcome | Capy's praise |")
         appendLine("|---|---|---|---|---|---|---|---|")
         for (o in outcomes) {
             val rec = o.record
             appendLine(
                 "| ${o.retelling.id} | ${o.sentText.split(' ').size} | ${rec.latencyMs} ms | ${rec.inputTokens} / ${rec.outputTokens} | " +
-                    "${rec.attempts} | ${rec.rateLimitWaits} | ${cell(rec.outcome)} | ${cell(o.reply?.praise ?: "")} |",
+                    "${rec.retries} | ${rec.rateLimitWaits} | ${cell(rec.outcome)} | ${cell(o.reply?.praise ?: "")} |",
             )
         }
         appendLine()
@@ -155,7 +170,7 @@ object Report {
             appendLine(
                 "| $type | ${rs.size} | ${rs.map { it.latencyMs }.average().toLong()} ms | ${rs.maxOf { it.latencyMs }} ms | " +
                     "${rs.map { it.inputTokens }.average().toInt()} / ${rs.map { it.outputTokens }.average().toInt()} | " +
-                    "${rs.count { it.attempts > 1 }} | ${rs.sumOf { it.rateLimitWaits }} | ${rs.count { !it.outcome.startsWith("ok") }} |",
+                    "${rs.sumOf { it.retries }} | ${rs.sumOf { it.rateLimitWaits }} | ${rs.count { !it.outcome.startsWith("ok") }} |",
             )
         }
         appendLine()

@@ -34,4 +34,18 @@ class PromptsTest {
         assertEquals("openai/gpt-oss-120b", r.model)
         assertEquals("whisper-large-v3-turbo", CoreConfig.route(CoreConfig.TRANSCRIBE).model)
     }
+
+    @Test
+    fun overridesWinOverTheFileAndCanBeCleared() {
+        try {
+            CoreConfig.set("prompt.assess_recall", "v1")
+            assertEquals("v1", Prompts.version(Prompts.ASSESS_RECALL))
+            assertTrue(Prompts.render(Prompts.ASSESS_RECALL, mapOf("title" to "T", "ideas" to "[]", "transcript" to "Y")).isNotBlank())
+        } finally {
+            CoreConfig.clearOverrides()
+        }
+        assertEquals("v2", Prompts.version(Prompts.ASSESS_RECALL))
+        assertEquals("medium", CoreConfig.reasoningEffort(CoreConfig.ENRICH_IDEAS, "groq"))
+        assertEquals("low", CoreConfig.reasoningEffort(CoreConfig.ASSESS_RECALL, "groq"))
+    }
 }

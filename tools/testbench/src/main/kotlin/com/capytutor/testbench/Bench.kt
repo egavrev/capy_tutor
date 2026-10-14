@@ -21,9 +21,11 @@ data class CallRecord(
     val latencyMs: Long,
     val inputTokens: Int,
     val outputTokens: Int,
-    val attempts: Int,
+    /** Extra model calls because a reply failed validation (rate-limit waits are not counted). */
+    val retries: Int,
     val rateLimitWaits: Int,
     val outcome: String,
+    val retryReason: String? = null,
 )
 
 data class EnrichOutcome(val pack: LessonPack?, val record: CallRecord, val error: String?)
@@ -45,13 +47,15 @@ data class AssessOutcome(
  * session), the bench simply waits out a rate limit and tries again, up to [maxRateLimitWaits].
  */
 class Bench(
-    private val llm: LlmProvider,
+    /** The model for each call type; each can have its own settings (e.g. reasoning effort). */
+    private val llmFor: (callType: String) -> LlmProvider,
     private val filter: SafetyFilter,
     private val log: (String) -> Unit = ::println,
     private val maxRateLimitWaits: Int = 6,
 ) {
     val records = mutableListOf<CallRecord>()
-    private val caller = JsonCaller(llm)
+    private val callers = mutableMapOf<String, JsonCaller>()
+    private fun caller(callType: String) = callers.getOrPut(callType) { JsonCaller(llmFor(callType)) }
 
     suspend fun enrich(lesson: Lesson): EnrichOutcome {
         val ids = lesson.ideas.indices.map { lesson.ideaId(it) }
@@ -105,10 +109,11 @@ class Bench(
         var elapsedMs = 0L
         var inTok = 0
         var outTok = 0
-        var attempts = 0
+        var retries = 0
+        var retryReason: String? = null
         while (true) {
             val start = System.nanoTime()
-            val r = caller.call(
+            val r = caller(callType).call(
                 system = Prompts.system(),
                 user = user,
                 schemaName = callType,
@@ -119,7 +124,8 @@ class Bench(
             elapsedMs += (System.nanoTime() - start) / 1_000_000
             inTok += r.inputTokens
             outTok += r.outputTokens
-            attempts += r.attempts
+            retries += r.attempts - 1 // the last attempt is the answer or the rate limit
+            if (r is JsonCall.Ok && r.retryReason != null) retryReason = r.retryReason
             if (r is JsonCall.RateLimited && waits < maxRateLimitWaits) {
                 waits++
                 val seconds = (r.retryAfterSeconds ?: 10) + 1
@@ -131,9 +137,10 @@ class Bench(
                 is JsonCall.Ok -> if (r.attempts > 1) "ok after retry" else "ok"
                 else -> describe(r)
             }
-            val record = CallRecord(callType, label, elapsedMs, inTok, outTok, attempts, waits, outcome)
+            val record = CallRecord(callType, label, elapsedMs, inTok, outTok, retries, waits, outcome, retryReason)
             records += record
-            log("  $callType ($label): $outcome, ${elapsedMs} ms, $inTok in / $outTok out tokens")
+            log("  $callType ($label): $outcome, ${elapsedMs} ms, $inTok in / $outTok out tokens" +
+                (retryReason?.let { " (first reply rejected: $it)" } ?: ""))
             return r to record
         }
     }

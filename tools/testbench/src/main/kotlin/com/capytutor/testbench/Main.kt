@@ -27,6 +27,8 @@ Options:
   --out <dir>          where reports go (default tools/testbench/out)
   --fresh              ignore cached enrichment (out/<lesson>.pack.json)
   --child-name <name>  replaced with "copilul" before sending (repeatable)
+  --set <key>=<value>  override a setting from config/providers.properties, e.g.
+                       --set prompt.assess_recall=v1   --set assess_recall.reasoningEffort=medium
 
 The Groq key comes from GROQ_API_KEY or secrets.properties. It is never printed.
 """
@@ -46,6 +48,7 @@ private class Options(args: List<String>) {
                 "--fresh" -> fresh = true
                 "--lesson" -> lessonForPrompt = File(it.next())
                 "--child-name" -> childNames += it.next()
+                "--set" -> it.next().split('=', limit = 2).let { (k, v) -> CoreConfig.set(k.trim(), v.trim()) }
                 "-h", "--help" -> { println(USAGE); exitProcess(0) }
                 else -> positional += a
             }
@@ -66,17 +69,19 @@ fun main(args: Array<String>) {
     opts.out.mkdirs()
 
     val transport = OkHttpTransport()
-    val chatRoute = CoreConfig.route(CoreConfig.ASSESS_RECALL)
-    require(chatRoute.provider == "groq") { "Only Groq is supported in the MVP (got ${chatRoute.provider})" }
-    val llm = Groq.chat(
-        model = chatRoute.model,
-        apiKey = { key },
-        transport = transport,
-        baseUrl = CoreConfig.get("groq.baseUrl") ?: Groq.DEFAULT_BASE_URL,
-        timeoutMs = 60_000, // generous: the bench measures latency; the app uses 20 s
-        reasoningEffort = CoreConfig.get("groq.reasoningEffort"),
-    )
-    val bench = Bench(llm, SafetyFilter(opts.childNames))
+    val llmFor = { callType: String ->
+        val route = CoreConfig.route(callType)
+        require(route.provider == "groq") { "Only Groq is supported in the MVP (got ${route.provider} for $callType)" }
+        Groq.chat(
+            model = route.model,
+            apiKey = { key },
+            transport = transport,
+            baseUrl = CoreConfig.get("groq.baseUrl") ?: Groq.DEFAULT_BASE_URL,
+            timeoutMs = 60_000, // generous: the bench measures latency; the app uses 20 s
+            reasoningEffort = CoreConfig.reasoningEffort(callType, route.provider),
+        )
+    }
+    val bench = Bench(llmFor, SafetyFilter(opts.childNames))
 
     val ok = runBlocking {
         when (command) {

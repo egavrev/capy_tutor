@@ -23,14 +23,32 @@ object KeywordMatcher {
     private val nonWord = Regex("[^\\p{L}\\p{N}]+")
     private val elongated = Regex("(\\p{L})\\1{2,}")
 
-    /** Lower case, no diacritics, no punctuation, no filler. Words separated by single spaces. */
+    /**
+     * Lower case, no diacritics, no punctuation, no filler, spoken numbers as digits
+     * ("douăzeci și patru" → "24"). Words separated by single spaces.
+     */
     fun normalize(text: String): String {
         var s = RomanianText.foldForMatching(text).replace(nonWord, " ")
         for (p in fillerPhrases) s = " $s ".replace(" $p ", " ")
-        return s.split(' ')
-            .filter { it.isNotBlank() && it !in fillerWords && !it.matches(elongated) }
-            .joinToString(" ")
+        val words = s.split(' ').filter { it.isNotBlank() && it !in fillerWords && !it.matches(elongated) }
+        return RomanianNumbers.convert(words).joinToString(" ")
     }
+
+    /**
+     * The first content word of [answer] that also appears (by stem) in [hint], or null.
+     * Used to flag hints that give the answer away before the explanation step.
+     */
+    fun revealedWord(hint: String, answer: String): String? {
+        val hintTokens = normalize(hint).split(' ').filter { it.isNotEmpty() }
+        return normalize(answer).split(' ')
+            .filter { it.length >= 4 && it !in stopWords || it.all(Char::isDigit) }
+            .firstOrNull { w -> hintTokens.any { t -> wordMatches(t, w) } }
+    }
+
+    private val stopWords = setOf(
+        "care", "este", "sunt", "pentru", "aproximativ", "acum", "despre", "foarte", "doar", "dintre",
+        "prin", "spre", "fost", "avea", "aveau", "erau", "acest", "aceasta", "aceste", "lui", "unei", "unui",
+    )
 
     fun groupMatches(normalizedText: String, group: List<String>): Boolean {
         val tokens = normalizedText.split(' ').filter { it.isNotEmpty() }

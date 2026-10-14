@@ -35,6 +35,7 @@ class JsonCallerTest {
         assertEquals(1850, r.inputTokens)
         assertEquals(610, r.outputTokens)
         assertTrue(t.sent[1].body.contains("missing ideas: i2"))
+        assertEquals("missing ideas: i2", (r as JsonCall.Ok).retryReason)
     }
 
     @Test

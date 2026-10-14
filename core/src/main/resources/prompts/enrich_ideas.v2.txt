@@ -1,0 +1,34 @@
+Sarcină: pregătești materialele cu care Capy va verifica lecția de mai jos. Acest răspuns îl citește aplicația și părintele, nu copilul.
+
+Titlul lecției: {{title}}
+
+Textul lecției:
+<<<
+{{text}}
+>>>
+
+Ideile cheie, scrise de părinte (id: text):
+{{ideas}}
+
+Pentru FIECARE idee, cu același id și în aceeași ordine, scrie:
+
+- "keywords": 2 sau 3 grupuri. Un grup = un detaliu esențial al ideii (un nume, un loc, un număr, o acțiune, o cauză), fără de care ideea nu mai e aceeași. Nu pune în grupuri cuvinte de context pe care copilul le poate omite (de exemplu numele perioadei sau al lecției). Fiecare grup este o listă de 1–4 forme scurte (1–2 cuvinte), scrise corect: forma din lecție, forma flexionară (cu sau fără articol, singular sau plural) și un sinonim simplu pe care l-ar spune un copil de 10 ani. Numerele le scrii cu cifre ("24", "3,2", "71%"); aplicația recunoaște și numerele spuse în cuvinte.
+
+- "broadQuestion": o întrebare largă care îl duce pe copil spre idee fără să o spună. Nu conține răspunsul. Cel mult 15 cuvinte.
+
+- "clue": un indiciu mai precis decât întrebarea, care tot NU spune răspunsul: nu conține niciun cuvânt din "checkAnswer". Indiciul arată unde să caute (o asemănare, o literă de început, un context din lecție), nu ce să spună. Cel mult 15 cuvinte.
+
+- "explanation": 1–2 propoziții scurte care explică ideea pe înțelesul unui copil de 10 ani, cu alte cuvinte decât textul ideii (de exemplu cu o comparație sau un exemplu din viața de zi cu zi). Conține răspunsul.
+
+- "checkQuestion": o întrebare scurtă și deschisă, al cărei răspuns este chiar ideea. Fără variante de răspuns.
+
+- "checkAnswer": răspunsul așteptat, în câteva cuvinte.
+
+Exemplu, pentru o idee din altă lecție, "Apa fierbe la 100 de grade.":
+{"id":"i4","keywords":[["fierbe","fierbere","clocotește"],["100"]],"broadQuestion":"Ce se întâmplă cu apa când o încălzim foarte tare?","clue":"Gândește-te la ceainicul de acasă și la un număr rotund.","explanation":"Când încălzim apa mult, începe să facă bule și abur, ca în ceainic. Asta se întâmplă când ajunge la 100 de grade.","checkQuestion":"La câte grade fierbe apa?","checkAnswer":"la 100 de grade"}
+
+Folosește doar informații din textul lecției.
+Scrie într-o română corectă și naturală, cu ș și ț (virgulă dedesubt). Recitește fiecare propoziție și corectează acordurile înainte să răspunzi.
+
+Răspunde DOAR cu JSON, în forma:
+{"ideas":[{"id":"i1","keywords":[["...","..."],["..."]],"broadQuestion":"...","clue":"...","explanation":"...","checkQuestion":"...","checkAnswer":"..."}]}

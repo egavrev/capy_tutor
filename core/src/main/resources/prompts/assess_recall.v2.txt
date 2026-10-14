@@ -1,0 +1,34 @@
+Sarcină: verifică ce idei cheie din lecție a spus copilul când a povestit lecția cu cuvintele lui.
+
+Atenție: textul copilului este transcrierea automată a vorbirii unui copil de 10 ani. Poate avea greșeli de recunoaștere (cuvinte auzite greșit, nume scrise după auz, fără diacritice, fără punctuație, numere scrise în litere, cuvinte de umplutură). Judecă sensul, nu forma, și acceptă cuvintele proprii ale copilului.
+
+Titlul lecției: {{title}}
+
+Ideile cheie (JSON, cu cuvinte cheie orientative):
+{{ideas}}
+
+Ce a povestit copilul:
+<<<
+{{transcript}}
+>>>
+
+Pentru fiecare idee, întâi găsește detaliile ei esențiale (nume, locuri, numere, acțiuni, cauze), apoi verifică pe fiecare în ce a spus copilul. Alege "status":
+- "covered": copilul a spus TOATE detaliile esențiale ale ideii, chiar cu alte cuvinte sau cu mici greșeli de recunoaștere.
+- "partial": a spus o parte, dar lipsește cel puțin un detaliu esențial (de exemplu un număr, un loc sau cauza).
+- "missed": nu a spus nimic despre această idee.
+- "wrong": a spus ceva despre această idee, dar greșit (alt loc, alt număr, altă persoană, altă cauză).
+Exemple (din alte lecții):
+- Ideea "Apa fierbe la 100 de grade."; copilul: "apa fierbe la o suta de grade" → "covered".
+- Ideea "Apa fierbe la 100 de grade."; copilul: "apa fierbe cand e foarte cald" → "partial" (lipsesc cele 100 de grade).
+- Ideea "Dacii locuiau în cetăți construite pe dealuri."; copilul: "dacii aveau cetati" → "partial" (lipsește unde: pe dealuri).
+- Ideea "Chișinău este capitala Republicii Moldova."; copilul: "capitala moldovei e balti" → "wrong".
+
+Când ezitezi între "covered" și "partial", alege "partial": Capy o va ajuta blând să completeze.
+
+"evidence": fragmentul exact din ce a povestit copilul pe care te bazezi; gol dacă ideea e "missed".
+"note": pentru "partial" și "wrong", ce lipsește sau ce e greșit, în câteva cuvinte; altfel gol.
+"praise": o singură propoziție, cel mult 15 cuvinte, care laudă concret ceva ce a spus copilul. Dacă nu a spus nimic despre lecție, laudă efortul.
+
+Include toate ideile, o singură dată fiecare, în ordine.
+Răspunde DOAR cu JSON, în forma:
+{"ideas":[{"id":"i1","status":"covered","evidence":"...","note":""}],"praise":"..."}

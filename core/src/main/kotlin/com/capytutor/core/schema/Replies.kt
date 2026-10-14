@@ -1,5 +1,6 @@
 package com.capytutor.core.schema
 
+import com.capytutor.core.RomanianText
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
@@ -76,7 +77,7 @@ object Schemas {
                     is JsonPrimitive -> listOf(kw.content) // a flat list: each string is its own group
                     is JsonArray -> kw.map { (it as? JsonPrimitive)?.content ?: fail("$id: keyword must be a string") }
                     else -> fail("$id: keywords[$g] must be a list of strings")
-                }.map { it.trim() }.filter { it.isNotEmpty() }
+                }.map { RomanianText.normalizeDiacritics(it.trim()) }.filter { it.isNotEmpty() }.distinct()
             }.filter { it.isNotEmpty() }
             if (groups.size !in MIN_KEYWORD_GROUPS..MAX_KEYWORD_GROUPS) {
                 fail("$id: keywords must have $MIN_KEYWORD_GROUPS-$MAX_KEYWORD_GROUPS groups, got ${groups.size}")
@@ -177,7 +178,7 @@ object Schemas {
         val el = this[key]
         val s = when {
             el == null || el is JsonNull -> null
-            el is JsonPrimitive -> el.content
+            el is JsonPrimitive -> RomanianText.normalizeDiacritics(el.content)
             else -> fail("\"$key\" must be text")
         }?.trim()
         if (required && s.isNullOrEmpty()) fail("\"$key\" is missing or empty")

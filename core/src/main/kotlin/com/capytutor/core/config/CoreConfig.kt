@@ -26,7 +26,17 @@ object CoreConfig {
         }
     }
 
-    fun get(key: String): String? = props.getProperty(key)?.trim()?.takeIf { it.isNotEmpty() }
+    private val overrides = java.util.concurrent.ConcurrentHashMap<String, String>()
+
+    fun get(key: String): String? =
+        (overrides[key] ?: props.getProperty(key))?.trim()?.takeIf { it.isNotEmpty() }
+
+    /** Overrides one setting for this process (test bench `--set key=value`). Never used by the app. */
+    fun set(key: String, value: String) {
+        overrides[key] = value
+    }
+
+    fun clearOverrides() = overrides.clear()
 
     fun route(callType: String): Route {
         val value = get(callType) ?: error("No provider configured for $callType")
@@ -36,6 +46,10 @@ object CoreConfig {
     }
 
     fun maxTokens(callType: String, default: Int = 800): Int = get("$callType.maxTokens")?.toIntOrNull() ?: default
+
+    /** Per-call reasoning effort (e.g. enrich_ideas.reasoningEffort), else the provider default. */
+    fun reasoningEffort(callType: String, provider: String): String? =
+        get("$callType.reasoningEffort") ?: get("$provider.reasoningEffort")
 
     fun temperature(): Double = get("temperature")?.toDoubleOrNull() ?: 0.2
 }

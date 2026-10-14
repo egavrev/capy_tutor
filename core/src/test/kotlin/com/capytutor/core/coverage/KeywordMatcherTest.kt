@@ -47,3 +47,35 @@ class KeywordMatcherTest {
         assertFalse(KeywordMatcher.isCandidateCovered("orice", emptyList()))
     }
 }
+
+class RomanianNumbersTest {
+    private fun n(s: String) = KeywordMatcher.normalize(s)
+
+    @Test
+    fun spokenNumbersBecomeDigits() {
+        assertEquals("24 de ore", n("douăzeci și patru de ore"))
+        assertEquals("365 de zile", n("trei sute șaizeci și cinci de zile"))
+        assertEquals("71 la suta", n("șaptezeci și unu la sută"))
+        assertEquals("100", n("o sută"))
+        assertEquals("2026", n("două mii douăzeci și șase"))
+        assertEquals("3 2 milioane de ani", n("trei virgulă doi milioane de ani"))
+        assertEquals(n("3,2 milioane"), n("trei virgulă doi milioane"))
+        assertEquals("2 si 3", n("doi și trei"))
+        assertEquals("12", n("doisprezece"))
+    }
+
+    @Test
+    fun digitsInLessonAndWordsInSpeechMatch() {
+        assertTrue(KeywordMatcher.isCandidateCovered("se învârte în douăzeci și patru de ore", listOf(listOf("24 de ore"))))
+        assertTrue(KeywordMatcher.isCandidateCovered("apa e șaptezeci și unu la sută", listOf(listOf("71%"))))
+    }
+
+    @Test
+    fun revealedWordFindsAnswersInHints() {
+        assertEquals("ecuator", KeywordMatcher.revealedWord("Se numește Ecuator", "Ecuator"))
+        assertEquals("incalzea", KeywordMatcher.revealedWord("Îi încălzea și îi ținea departe de prădători.", "încălzea și apăra de animale"))
+        assertEquals("2", KeywordMatcher.revealedWord("Acum două milioane și jumătate de ani", "2,5 milioane de ani"))
+        assertEquals(null, KeywordMatcher.revealedWord("Este un continent cald, cu savane.", "în Africa"))
+        assertEquals(null, KeywordMatcher.revealedWord("Începe cu litera P.", "paleolitic"))
+    }
+}

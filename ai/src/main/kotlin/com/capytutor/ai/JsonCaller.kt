@@ -15,6 +15,8 @@ sealed interface JsonCall<out T> {
         override val attempts: Int,
         override val inputTokens: Int,
         override val outputTokens: Int,
+        /** Why the first attempt was rejected, when there was a retry. */
+        val retryReason: String? = null,
     ) : JsonCall<T>
 
     data class RateLimited(
@@ -51,13 +53,14 @@ class JsonCaller(private val llm: LlmProvider) {
         var inTok = 0
         var outTok = 0
         var prompt = user
+        var firstProblem: String? = null
         for (attempt in 1..MAX_ATTEMPTS) {
             val problem: String = when (val r = llm.completeJson(system, prompt, schemaName, maxTokens, temperature)) {
                 is LlmResult.Ok -> {
                     inTok += r.inputTokens
                     outTok += r.outputTokens
                     when (val v = parse(r.json)) {
-                        is Validated.Ok -> return JsonCall.Ok(v.value, r.json, attempt, inTok, outTok)
+                        is Validated.Ok -> return JsonCall.Ok(v.value, r.json, attempt, inTok, outTok, firstProblem)
                         is Validated.Invalid -> v.reason
                     }
                 }
@@ -66,6 +69,7 @@ class JsonCaller(private val llm: LlmProvider) {
                     if (r.reason.startsWith(ChatResponses.INVALID_JSON)) r.reason
                     else return JsonCall.Failed(r.reason, r.retryable, attempt, inTok, outTok)
             }
+            if (firstProblem == null) firstProblem = problem
             prompt = user + reminder(problem)
         }
         return JsonCall.Failed("${ChatResponses.INVALID_JSON}: still invalid after $MAX_ATTEMPTS attempts", true, MAX_ATTEMPTS, inTok, outTok)
