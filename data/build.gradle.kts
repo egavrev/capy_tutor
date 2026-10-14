@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
 
 android {
@@ -26,9 +27,10 @@ kotlin {
     }
 }
 
-ksp {
+room {
     // Schemas are committed so later versions can migrate without losing Vali's history.
-    arg("room.schemaLocation", "$projectDir/schemas")
+    // (The Room plugin, not a KSP argument: debug and release would race on the same file.)
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
