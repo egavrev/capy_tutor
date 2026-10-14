@@ -65,7 +65,7 @@ Same steps as Capy Pomodoro (email or USB, then "Install anyway"; adb if Family 
 | `tools/testbench/` | Command-line test bench against Groq, with sample retellings in `samples/` |
 | `design-system/` | `DESIGN_SYSTEM.md`, tokens and the design package (source of truth for the look) |
 | `lessons/` | Lesson Markdown files: `istorie/`, `geografie/`, `TEMPLATE-lectie.md` |
-| `docs/` | Architecture decisions and the lesson extraction prompt |
+| `docs/` | Architecture decisions, the lesson extraction prompt, test bench results |
 | `CLAUDE.md`, `HANDOFF.md` | Rules and full MVP spec for Claude |
 | `signing/` | Release keystore (local only, never committed) |
 
