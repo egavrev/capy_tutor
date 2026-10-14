@@ -1,0 +1,246 @@
+SAMPLE-pamantul.md: enriching 8 ideas
+  enrich_ideas (Pământul, planeta noastră): ok, 10131 ms, 1737 in / 4519 out tokens
+
+=== Pământul, planeta noastră (scripted session)
+Capy: Lecția „Pământul, planeta noastră” are 8 idei cheie. Când ești gata, hai să începem!
+Copilul: [Mai departe]
+Capy: Povestește-mi cu cuvintele tale tot ce ții minte.
+Copilul: pământul e a treia planetă de la soare și se învârte în jurul axei
+Copilul: așa avem zi și noapte și luna e satelitul lui
+Copilul: [Gata, am terminat]
+Capy: Ai explicat foarte clar cum ziua și noaptea apar!
+Capy: Ai ținut minte 2 din 8 idei. Hai să le căutăm împreună pe celelalte.
+   (1 apel la model, 2162 ms)
+Copilul: [Mai departe]
+Capy: Cum arată Pământul din spațiu?
+Copilul: e rotund
+Capy: Încă nu. Hai să ne uităm împreună.
+Capy: Completează: „Pământul are forma aproape a unei …, puțin … la poli.”
+   (1 apel la model, 494 ms)
+Copilul: e ca o minge dar puțin turtit la poli
+Capy: Capy e puțin obosit. Continuăm mai târziu?
+   (1 apel la model, 58 ms)
+   (pauză: RATE_LIMITED; aștept 15s și continui)
+Capy: Am revenit! Continuăm de unde am rămas.
+Capy: Ai spus forma și aplatizarea. E foarte bine!
+Capy: Hai la următoarea idee.
+Capy: Ce linie împarte Pământul în două jumătăți?
+   (1 apel la model, 832 ms)
+Copilul: ecuatorul îl împarte în două emisfere nordică și sudică
+Capy: Da, ți-ai amintit!
+Capy: Hai la următoarea idee.
+Capy: Cât durează o zi completă pe Pământ?
+Copilul: douăzeci și patru de ore
+Capy: Ai răspuns corect! Ziua durează douăzeci și patru de ore.
+Capy: Hai la următoarea idee.
+Capy: Cât timp petrece Pământul să facă un cerc în jurul Soarelui?
+   (1 apel la model, 659 ms)
+Copilul: un an
+Capy: Ai răspuns corect, ai spus un an!
+Capy: Hai la următoarea idee.
+Capy: De ce se schimbă vremea în diferite perioade ale anului?
+   (1 apel la model, 515 ms)
+Copilul: pentru că vara e mai aproape de soare
+Capy: Capy e puțin obosit. Continuăm mai târziu?
+   (1 apel la model, 75 ms)
+   (pauză: RATE_LIMITED; aștept 15s și continui)
+Capy: Am revenit! Continuăm de unde am rămas.
+Capy: Încă nu. Hai să ne uităm împreună.
+Capy: Completează: „… apar pentru că … este ….”
+   (1 apel la model, 630 ms)
+Copilul: [Nu știu]
+Capy: Când axa este înclinată, Soarele încălzește diferit părțile Pământului, creând anotimpuri.
+Capy: Spune-mi și tu, cu cuvintele tale.
+Copilul: pentru că axa pământului e înclinată
+Capy: Bravo, acum ai spus-o chiar tu!
+Capy: Hai la următoarea idee.
+Capy: Ce procent din Pământ este acoperit de apă?
+   (1 apel la model, 536 ms)
+Copilul: șaptezeci și unu la sută e apă
+Capy: Capy e puțin obosit. Continuăm mai târziu?
+   (1 apel la model, 66 ms)
+   (pauză: RATE_LIMITED; aștept 15s și continui)
+Capy: Am revenit! Continuăm de unde am rămas.
+Capy: Ai spus corect procentul! Bine făcut!
+Capy: Acum un mic test: câte o întrebare pentru fiecare idee.
+Capy: Care este a treia planetă de la Soare?
+   (1 apel la model, 535 ms)
+Copilul: a treia
+Capy: Încă nu. Răspunsul este: Pământul.
+   (1 apel la model, 1269 ms)
+Copilul: [Mai departe]
+Capy: Ce formă are Pământul?
+Copilul: o sferă puțin turtită la poli
+Capy: Corect!
+Copilul: [Mai departe]
+Capy: Cum se numește linia care împarte Pământul?
+Copilul: ecuatorul
+Capy: Corect! Ai spus corect! Bun lucru.
+   (1 apel la model, 727 ms)
+Copilul: [Mai departe]
+Capy: Cât timp durează rotația Pământului?
+Copilul: 24 de ore
+Capy: Capy e puțin obosit. Continuăm mai târziu?
+   (1 apel la model, 44 ms)
+   (pauză: RATE_LIMITED; aștept 15s și continui)
+Capy: Am revenit! Continuăm de unde am rămas.
+Capy: Corect! Ai răspuns corect! Ai spus exact timpul rotației.
+   (1 apel la model, 547 ms)
+Copilul: [Mai departe]
+Capy: Câte zile are un an pe Pământ?
+Copilul: 365 de zile
+Capy: Corect! Ai răspuns corect, ai spus exact numărul de zile!
+   (1 apel la model, 436 ms)
+Copilul: [Mai departe]
+Capy: De ce apar anotimpurile?
+Copilul: pentru că axa e înclinată
+Capy: Corect!
+Copilul: [Mai departe]
+Capy: Ce procent din suprafața Pământului este apă?
+Copilul: jumătate
+Capy: Încă nu. Răspunsul este: 71%.
+   (1 apel la model, 459 ms)
+Copilul: [Mai departe]
+Capy: Care este satelitul natural al Pământului?
+Copilul: luna
+Capy: Capy e puțin obosit. Continuăm mai târziu?
+   (1 apel la model, 44 ms)
+   (pauză: RATE_LIMITED; aștept 15s și continui)
+Capy: Am revenit! Continuăm de unde am rămas.
+Capy: Corect! Ai răspuns corect! Continuă așa.
+   (1 apel la model, 468 ms)
+Copilul: [Mai departe]
+Capy: 6 din 8
+Capy: Ai reținut foarte bine că Luna este satelitul Pământului. Ești curios și ai explicat clar!
+   (1 apel la model, 801 ms)
+Copilul: [Mai departe]
+Capy: Gata pe azi. Pe curând!
+Report: testbench-out/SAMPLE-pamantul.session.md
+SAMPLE-aparitia-omului.md: enriching 8 ideas
+  rate limited on enrich_ideas (Apariția omului și epoca pietrei), waiting 10s [1/6]
+  enrich_ideas (Apariția omului și epoca pietrei): ok, 7679 ms, 1777 in / 3122 out tokens
+
+=== Apariția omului și epoca pietrei (scripted session)
+Capy: Lecția „Apariția omului și epoca pietrei” are 8 idei cheie. Când ești gata, hai să începem!
+Copilul: [Mai departe]
+Capy: Povestește-mi cu cuvintele tale tot ce ții minte.
+Copilul: păi deci primii oameni au trăit în africa acum foarte mult timp
+Copilul: au găsit-o pe lusi în etiopia și oamenii făceau unelte din piatră
+Copilul: și ăă aveau foc și locuiau în peșteri
+Copilul: [Gata, am terminat]
+Capy: Capy e puțin obosit. Continuăm mai târziu?
+   (1 apel la model, 67 ms)
+   (pauză: RATE_LIMITED; aștept 15s și continui)
+Capy: Am revenit! Continuăm de unde am rămas.
+Capy: Capy e puțin obosit. Continuăm mai târziu?
+   (1 apel la model, 64 ms)
+   (pauză: RATE_LIMITED; aștept 15s și continui)
+Capy: Am revenit! Continuăm de unde am rămas.
+Capy: Ai reținut multe detalii importante, foarte bine!
+Capy: Ai ținut minte 2 din 8 idei. Hai să le căutăm împreună pe celelalte.
+   (1 apel la model, 2068 ms)
+Copilul: [Mai departe]
+Capy: Ce păstrează oamenii de știință pentru a studia animalele vechi?
+Copilul: sunt niște oase foarte vechi
+Capy: Încă nu. Hai să ne uităm împreună.
+Capy: Caută cuvintele care înseamnă rămășițe în pământ.
+   (1 apel la model, 1214 ms)
+Copilul: urme de animale și oameni de demult păstrate în pământ sau în piatră
+Capy: Da, ți-ai amintit! Indiciul te-a ajutat.
+Capy: Hai la următoarea idee.
+Capy: Ce fosilă celebră a fost găsită în Etiopia acum milioane de ani?
+Copilul: lusi e o fosilă din etiopia veche de trei virgulă doi milioane de ani
+Capy: Ai spus corect numele fosilei, Lucy!
+Capy: Hai la următoarea idee.
+Capy: Ce au început să producă oamenii acum câteva milioane de ani?
+   (1 apel la model, 2029 ms)
+Copilul: au început să facă unelte
+Capy: Capy e puțin obosit. Continuăm mai târziu?
+   (1 apel la model, 61 ms)
+   (pauză: RATE_LIMITED; aștept 15s și continui)
+Capy: Am revenit! Continuăm de unde am rămas.
+Capy: Ai răspuns corect! Ai spus că au făcut unelte.
+Capy: Hai la următoarea idee.
+Capy: Cum se numește începutul epocii pietrei?
+   (1 apel la model, 477 ms)
+Copilul: [Nu știu]
+Capy: Nicio problemă. Uite un indiciu: Caută cuvântul care începe cu „p” și înseamnă vechi.
+Copilul: paleolitic
+Capy: Ai găsit cuvântul corect! Continuă așa.
+Capy: Hai la următoarea idee.
+Capy: Cu ce activități se hrănea oamenii în paleolitic?
+   (1 apel la model, 560 ms)
+Copilul: vânau animale și pescuiau și culegeau fructe
+Capy: Da, ți-ai amintit!
+Capy: Hai la următoarea idee.
+Capy: Ce le oferea oamenilor căldură și protecție în paleolitic?
+Copilul: îi încălzea
+Capy: Capy e puțin obosit. Continuăm mai târziu?
+   (1 apel la model, 65 ms)
+   (pauză: RATE_LIMITED; aștept 15s și continui)
+Capy: Am revenit! Continuăm de unde am rămas.
+Capy: Încă nu. Hai să ne uităm împreună.
+Capy: Gândește-te la ceva ce arde și ține departe animalele.
+   (1 apel la model, 1043 ms)
+Copilul: îi încălzea și îi apăra de animalele sălbatice
+Capy: Încă nu. Hai să ne uităm împreună.
+Capy: Focul le dădea căldură și îi ținea în siguranță de animale.
+Capy: Spune-mi și tu, cu cuvintele tale.
+   (1 apel la model, 893 ms)
+Copilul: [Nu știu]
+Capy: E în regulă. O întâlnim din nou la test.
+Capy: Acum un mic test: câte o întrebare pentru fiecare idee.
+Capy: Pe ce continent au trăit primii strămoși ai omului?
+Copilul: în africa
+Capy: Corect! Ai răspuns corect! Continuă să înveți cu atenție.
+   (1 apel la model, 608 ms)
+Copilul: [Mai departe]
+Capy: Cum se numesc urmele păstrate în pământ sau în piatră?
+Copilul: urme de ființe vechi păstrate în piatră
+Capy: Corect!
+Copilul: [Mai departe]
+Capy: Cum se numește fosila găsită în Etiopia, veche de 3,2 milioane de ani?
+Copilul: în etiopia, are 3,2 milioane de ani
+Capy: Capy e puțin obosit. Continuăm mai târziu?
+   (1 apel la model, 92 ms)
+   (pauză: RATE_LIMITED; aștept 15s și continui)
+Capy: Am revenit! Continuăm de unde am rămas.
+Capy: Încă nu. Răspunsul este: Lucy.
+   (1 apel la model, 861 ms)
+Copilul: [Mai departe]
+Capy: Ce tip de obiecte au făcut oamenii din piatră acum 2,5 milioane de ani?
+Copilul: acum 2,5 milioane de ani
+Capy: Încă nu. Răspunsul este: unelte.
+   (1 apel la model, 626 ms)
+Copilul: [Mai departe]
+Capy: Cum se numește prima parte a epocii pietrei?
+Copilul: neolitic
+Capy: Încă nu. Răspunsul este: paleolitic.
+   (1 apel la model, 553 ms)
+Copilul: [Mai departe]
+Capy: Ce activități de hrană aveau oamenii în paleolitic?
+Copilul: [Nu știu]
+Capy: Încă nu. Răspunsul este: vânătoare, pescuit și cules.
+Copilul: [Mai departe]
+Capy: Ce le oferea oamenilor căldură și protecție?
+Copilul: îi încălzea și îi apăra de animale
+Capy: Capy e puțin obosit. Continuăm mai târziu?
+   (1 apel la model, 52 ms)
+   (pauză: RATE_LIMITED; aștept 15s și continui)
+Capy: Am revenit! Continuăm de unde am rămas.
+Capy: Încă nu. Răspunsul este: focul.
+   (1 apel la model, 1016 ms)
+Copilul: [Mai departe]
+Capy: În ce tipuri de locuințe locuiau oamenii din paleolitic?
+Copilul: în peșteri
+Capy: Încă nu. Răspunsul este: peșteri și colibe.
+   (1 apel la model, 559 ms)
+Copilul: [Cred că am dreptate]
+Capy: Bine, am notat. Un părinte se va uita.
+Copilul: [Mai departe]
+Capy: 3 din 8
+Capy: Ai răspuns bine la 3 din 8 întrebări. Mulțumesc că ai lucrat cu mine!
+   (1 apel la model, 59 ms)
+Copilul: [Mai departe]
+Capy: Gata pe azi. Pe curând!
+Report: testbench-out/SAMPLE-aparitia-omului.session.md
