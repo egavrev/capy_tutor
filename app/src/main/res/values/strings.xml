@@ -3,7 +3,7 @@
     <string name="app_name">Capy Tutore</string>
 
     <!-- Acasă -->
-    <!-- M3 replaces this with "Bună, %1$s!" using the child's name from settings. -->
+    <!-- Shown until the child's name is set; then "Bună, {name}!". -->
     <string name="home_greeting">Bună!</string>
     <string name="home_parent_mode">Mod părinte</string>
     <string name="home_empty_title">Încă nu ai lecții</string>

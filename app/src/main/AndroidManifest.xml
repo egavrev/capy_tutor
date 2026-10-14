@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- No permissions in M0. RECORD_AUDIO and INTERNET are added with the features that need them. -->
+    <!-- Groq calls (lesson import, checking the retelling). RECORD_AUDIO arrives with voice in M4. -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:name=".CapyApp"
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -20,6 +22,17 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- A lesson .md shared from Files, Drive or a chat app opens parent mode (PIN first). -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/octet-stream" />
             </intent-filter>
         </activity>
     </application>

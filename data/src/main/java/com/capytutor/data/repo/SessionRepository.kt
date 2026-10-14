@@ -21,6 +21,7 @@ class SessionRepository(private val db: CapyDatabase, private val clock: () -> L
     fun observeOpenLessonIds(): Flow<List<Long>> = sessions.observeOpenLessonIds()
     fun observeSessions(lessonId: Long): Flow<List<SessionEntity>> = sessions.observeFor(lessonId)
     fun observeResults(sessionId: Long): Flow<List<IdeaResultEntity>> = sessions.observeResults(sessionId)
+    suspend fun results(sessionId: Long): List<IdeaResultEntity> = sessions.results(sessionId)
 
     /** The unfinished session for this lesson, if any. */
     suspend fun open(lessonId: Long): Pair<Long, SessionState>? {

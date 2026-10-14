@@ -24,6 +24,8 @@ enum class ChildGender(val label: String, val promptForm: String) {
 }
 
 data class Settings(
+    /** False until the stored values were read once (avoids flashing the setup screen). */
+    val loaded: Boolean = false,
     val setupDone: Boolean = false,
     val childName: String = "",
     val gender: ChildGender = ChildGender.UNSAID,
@@ -45,6 +47,7 @@ class SettingsStore(context: Context, scope: CoroutineScope, private val box: Se
     val settings: StateFlow<Settings> = store.data.map { p ->
         val key = p[GROQ_KEY]?.let(box::decrypt)
         Settings(
+            loaded = true,
             setupDone = p[SETUP_DONE] ?: false,
             childName = p[CHILD_NAME]?.let(box::decrypt).orEmpty(),
             gender = p[GENDER]?.let { g -> ChildGender.entries.firstOrNull { it.name == g } } ?: ChildGender.UNSAID,

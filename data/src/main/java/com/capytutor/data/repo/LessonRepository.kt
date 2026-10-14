@@ -45,7 +45,11 @@ class LessonRepository(
     fun observeIdeas(lessonId: Long): Flow<List<KeyIdeaEntity>> = lessons.observeIdeas(lessonId)
     suspend fun lesson(id: Long): LessonEntity? = lessons.get(id)
 
-    suspend fun import(markdown: String): ImportResult {
+    /**
+     * [prepared]: hints and questions generated earlier (the debug demo uses the test bench's
+     * packs), so no model call is made.
+     */
+    suspend fun import(markdown: String, prepared: LessonPack? = null): ImportResult {
         val lesson = when (val r = LessonParser.parse(markdown)) {
             is ParseResult.Ok -> r.lesson
             is ParseResult.Error -> return ImportResult.Rejected(r.message)
@@ -74,6 +78,15 @@ class LessonRepository(
                 KeyIdeaEntity(lessonId = id, ideaKey = lesson.ideaId(i), ord = i, text = text, keywords = "[]", broadQuestion = "", clue = "", explanation = "", checkQuestion = "", checkAnswer = "")
             },
         )
+        if (prepared != null) {
+            val ids = lesson.ideas.indices.map { lesson.ideaId(it) }.toSet()
+            val ideas = prepared.ideas.filter { it.id in ids }
+            if (ideas.size == ids.size) {
+                lessons.replaceIdeas(id, ideas.map { it.toEntity(id) })
+                lessons.get(id)?.let { lessons.update(it.copy(enriched = true)) }
+                return ImportResult.Ok(id, null)
+            }
+        }
         return ImportResult.Ok(id, enrich(id, lesson))
     }
 
