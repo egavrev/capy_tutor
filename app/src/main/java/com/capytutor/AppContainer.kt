@@ -44,6 +44,9 @@ class AppContainer(private val context: Context) {
     val lessons = LessonRepository(db, context.filesDir, LessonEnricher(router), hasGroqKey = { settings.groqKey.isNotBlank() })
     val sessions = SessionRepository(db)
 
+    /** Prepares questions for many lessons within Groq's free limits (parent mode). */
+    val questionQueue = com.capytutor.ui.parent.QuestionQueue(lessons, scope)
+
     /** Debug builds only: the CI screenshot tour runs without Groq (see demo/Demo.kt). */
     @Volatile
     var demo: Boolean = false

@@ -52,8 +52,9 @@ class HomeViewModel(c: AppContainer) : ViewModel() {
         val openSet = open.toSet()
         HomeUi(
             name = settings.childName,
-            groups = lessons.groupBy { it.subject }.toList().map { (subject, list) ->
-                subject to list.map { HomeLesson(it, it.id in openSet) }
+            // The child sees only the lessons a parent checked and marked ready.
+            groups = com.capytutor.ui.parent.lessonsByChapter(lessons.filter { it.status == LessonEntity.READY }).map { (header, list) ->
+                header to list.map { HomeLesson(it, it.id in openSet) }
             },
             loaded = true,
         )
@@ -110,7 +111,7 @@ fun HomeScreen(vm: HomeViewModel, onOpenLesson: (Long) -> Unit, onParentMode: ()
                             else -> "Gata de povestit"
                         },
                         enabled = ready,
-                        leading = { SubjectDot(subjectColor(c, subject)) },
+                        leading = { SubjectDot(subjectColor(c, l.lesson.subject)) },
                         onClick = { onOpenLesson(l.lesson.id) },
                     )
                 }

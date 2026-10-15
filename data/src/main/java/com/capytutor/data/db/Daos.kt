@@ -13,6 +13,9 @@ interface LessonDao {
     @Query("SELECT * FROM lesson ORDER BY subject, createdAt")
     fun observeAll(): Flow<List<LessonEntity>>
 
+    @Query("SELECT * FROM lesson ORDER BY createdAt, id")
+    suspend fun all(): List<LessonEntity>
+
     @Query("SELECT * FROM lesson WHERE id = :id")
     suspend fun get(id: Long): LessonEntity?
 

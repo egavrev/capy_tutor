@@ -49,9 +49,14 @@ until [ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 
 step "Installing Capy Tutore"
 "$ADB" install -r "$APK"
 
-# Sample lessons in Downloads, for "Adaugă o lecție" in parent mode.
-"$ADB" push "$HERE/lessons/istorie/SAMPLE-aparitia-omului.md" /sdcard/Download/ >/dev/null
-"$ADB" push "$HERE/lessons/geografie/SAMPLE-pamantul.md" /sdcard/Download/ >/dev/null
+# Lessons in the emulator's Downloads, for "Adaugă lecții" in parent mode: every .md under
+# lessons/ (not the template), and any .zip of lessons (a Drive folder download) next to this repo.
+"$ADB" shell mkdir -p /sdcard/Download/Capy >/dev/null
+find "$HERE/lessons" -name '*.md' ! -name 'TEMPLATE*' -print0 | while IFS= read -r -d '' f; do
+  "$ADB" push "$f" /sdcard/Download/Capy/ >/dev/null
+done
+for z in "$HERE"/*.zip; do [ -e "$z" ] && "$ADB" push "$z" /sdcard/Download/ >/dev/null; done
+"$ADB" shell am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file:///sdcard/Download >/dev/null 2>&1 || true
 
 step "Opening the app"
 if [ "${1:-}" = "demo" ]; then

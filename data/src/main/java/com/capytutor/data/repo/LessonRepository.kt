@@ -19,6 +19,17 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 
+/** One step of preparing questions for many lessons, paced by Groq's limits. */
+sealed interface Prepare {
+    data object Done : Prepare
+
+    /** Groq's per-minute limit: try again after [seconds]. */
+    data class Wait(val seconds: Int) : Prepare
+
+    /** Daily limit, no key, no internet or another problem: stop the queue. [message] is Romanian. */
+    data class Stop(val message: String) : Prepare
+}
+
 sealed interface ImportResult {
     /** Imported; [enrichError] set when the questions could not be generated yet. */
     data class Ok(val lessonId: Long, val enrichError: String?) : ImportResult
@@ -49,7 +60,7 @@ class LessonRepository(
      * [prepared]: hints and questions generated earlier (the debug demo uses the test bench's
      * packs), so no model call is made.
      */
-    suspend fun import(markdown: String, prepared: LessonPack? = null): ImportResult {
+    suspend fun import(markdown: String, prepared: LessonPack? = null, enrich: Boolean = true): ImportResult {
         val lesson = when (val r = LessonParser.parse(markdown)) {
             is ParseResult.Ok -> r.lesson
             is ParseResult.Error -> return ImportResult.Rejected(r.message)
@@ -87,7 +98,36 @@ class LessonRepository(
                 return ImportResult.Ok(id, null)
             }
         }
+        if (!enrich) return ImportResult.Ok(id, null)
         return ImportResult.Ok(id, enrich(id, lesson))
+    }
+
+    /** Lessons whose hints and questions are not generated yet, oldest first. */
+    suspend fun withoutQuestions(): List<LessonEntity> = lessons.all().filter { !it.enriched }
+
+    /**
+     * Generates the questions for one lesson, for the paced queue in parent mode: a short Groq
+     * limit means wait and try again, a long one (the daily limit) means stop for today.
+     */
+    suspend fun prepareQuestions(lessonId: Long): Prepare {
+        if (!hasGroqKey()) return Prepare.Stop("Adaugă cheia Groq în Setări.")
+        val entity = lessons.get(lessonId) ?: return Prepare.Done
+        val lesson = (LessonParser.parse(File(entity.mdPath).readText()) as? ParseResult.Ok)?.lesson
+            ?: return Prepare.Stop("Fișierul lecției „${entity.title}” nu mai poate fi citit.")
+        return when (val r = runEnricher(lesson)) {
+            is EnrichResult.Ok -> {
+                save(lessonId, r)
+                Prepare.Done
+            }
+            is EnrichResult.Failed -> {
+                val wait = r.retryAfterSeconds
+                when {
+                    wait != null && wait <= MAX_WAIT_SECONDS -> Prepare.Wait(wait)
+                    wait != null -> Prepare.Stop("Groq a ajuns la limita gratuită de azi. Continuă mâine; lecțiile pregătite până acum sunt salvate.")
+                    else -> Prepare.Stop(r.message)
+                }
+            }
+        }
     }
 
     /** Generates (again) the hints and questions. Returns an error message, or null when done. */
@@ -100,24 +140,29 @@ class LessonRepository(
 
     private suspend fun enrich(lessonId: Long, lesson: Lesson): String? {
         if (!hasGroqKey()) return "Adaugă cheia Groq în Setări, apoi apasă „Generează întrebările”."
-        val result = try {
-            enricher.enrich(lesson)
-        } catch (e: kotlinx.coroutines.CancellationException) {
-            throw e
-        } catch (e: VirtualMachineError) {
-            throw e
-        } catch (e: Throwable) {
-            // Never crash parent mode: the lesson is saved, the parent can try again.
-            EnrichResult.Failed("Nu am putut pregăti întrebările (${e::class.simpleName}). Lecția e salvată; încearcă din nou.", retryable = true)
-        }
-        return when (val r = result) {
+        return when (val r = runEnricher(lesson)) {
             is EnrichResult.Failed -> r.message
             is EnrichResult.Ok -> {
-                lessons.replaceIdeas(lessonId, r.pack.ideas.map { it.toEntity(lessonId) })
-                lessons.get(lessonId)?.let { lessons.update(it.copy(enriched = true)) }
+                save(lessonId, r)
                 null
             }
         }
+    }
+
+    private suspend fun runEnricher(lesson: Lesson): EnrichResult = try {
+        enricher.enrich(lesson)
+    } catch (e: kotlinx.coroutines.CancellationException) {
+        throw e
+    } catch (e: VirtualMachineError) {
+        throw e
+    } catch (e: Throwable) {
+        // Never crash parent mode: the lesson is saved, the parent can try again.
+        EnrichResult.Failed("Nu am putut pregăti întrebările (${e::class.simpleName}). Lecția e salvată; încearcă din nou.", retryable = true)
+    }
+
+    private suspend fun save(lessonId: Long, r: EnrichResult.Ok) {
+        lessons.replaceIdeas(lessonId, r.pack.ideas.map { it.toEntity(lessonId) })
+        lessons.get(lessonId)?.let { lessons.update(it.copy(enriched = true)) }
     }
 
     suspend fun updateIdea(idea: KeyIdeaEntity) = lessons.updateIdea(idea)
@@ -139,6 +184,9 @@ class LessonRepository(
     }
 
     companion object {
+        /** Longer than this, Groq's "try again in" is the daily limit: stop instead of waiting. */
+        const val MAX_WAIT_SECONDS = 120
+
         fun subjectOf(label: String): Subject? = Subject.fromLabel(label)
 
         fun keywordsToText(json: String): String = decodeKeywords(json).joinToString("\n") { it.joinToString(" / ") }

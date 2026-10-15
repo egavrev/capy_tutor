@@ -9,8 +9,11 @@ import com.capytutor.core.schema.Schemas
 sealed interface EnrichResult {
     data class Ok(val pack: LessonPack, val tokens: Int) : EnrichResult
 
-    /** [message] is plain Romanian, for the parent. */
-    data class Failed(val message: String, val retryable: Boolean) : EnrichResult
+    /**
+     * [message] is plain Romanian, for the parent. [retryAfterSeconds] is set when Groq said
+     * "too many requests" (short: per-minute limit; long: the daily limit).
+     */
+    data class Failed(val message: String, val retryable: Boolean, val retryAfterSeconds: Int? = null) : EnrichResult
 }
 
 /**
@@ -32,8 +35,9 @@ class LessonEnricher(private val router: ProviderRouter) {
         return when (val r = router.callJson(CoreConfig.ENRICH_IDEAS, user) { Schemas.parseEnrich(it, ids) }) {
             is JsonCall.Ok -> EnrichResult.Ok(LessonPack.build(lesson, r.value), r.inputTokens + r.outputTokens)
             is JsonCall.RateLimited -> EnrichResult.Failed(
-                "Groq a primit prea multe cereri. Încearcă din nou peste ${r.retryAfterSeconds ?: 60} de secunde.",
+                "Groq a primit prea multe cereri. Încearcă din nou peste ${com.capytutor.core.RomanianText.count(r.retryAfterSeconds ?: 60, "secundă", "secunde")}.",
                 retryable = true,
+                retryAfterSeconds = r.retryAfterSeconds ?: 60,
             )
             is JsonCall.Failed -> EnrichResult.Failed(
                 when {

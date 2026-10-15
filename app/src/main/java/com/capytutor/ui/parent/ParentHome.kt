@@ -36,11 +36,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.capytutor.AppContainer
 import com.capytutor.R
+import com.capytutor.core.RomanianText
+import com.capytutor.core.lesson.Chapters
 import com.capytutor.data.db.LessonEntity
 import com.capytutor.data.repo.ImportResult
 import com.capytutor.ui.components.BannerKind
 import com.capytutor.ui.components.CapyBanner
 import com.capytutor.ui.components.CapyListRow
+import com.capytutor.ui.components.CapySecondaryButton
+import com.capytutor.ui.components.CapyCard
 import com.capytutor.ui.components.CapyPrimaryButton
 import com.capytutor.ui.components.CapyTopBar
 import com.capytutor.ui.components.PinPad
@@ -86,7 +90,12 @@ data class ImportStatus(val busy: Boolean = false, val message: String? = null, 
 class ParentHomeViewModel(private val c: AppContainer) : ViewModel() {
     val lessons: StateFlow<List<LessonEntity>> = c.lessons.observeLessons().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     val status = MutableStateFlow(ImportStatus())
+    val queue = c.questionQueue.state
 
+    fun prepareAll() = c.questionQueue.start()
+    fun stopPreparing() = c.questionQueue.stop()
+
+    /** One lesson: imported and its questions generated at once, then opened for review. */
     fun importText(markdown: String) {
         if (status.value.busy) return
         status.value = ImportStatus(busy = true, message = "Capy citește lecția și pregătește întrebările…")
@@ -103,11 +112,47 @@ class ParentHomeViewModel(private val c: AppContainer) : ViewModel() {
         }
     }
 
-    fun importUri(context: Context, uri: Uri) {
+    /** Files from the picker: .md files and/or a .zip of them (a Drive folder download). */
+    fun importUris(context: Context, uris: List<Uri>) {
+        if (status.value.busy || uris.isEmpty()) return
         viewModelScope.launch {
-            val text = withContext(Dispatchers.IO) { readLesson(context, uri) }
-            if (text == null) status.value = ImportStatus(message = "Nu am putut citi fișierul. Alege un fișier .md cu lecția.") else importText(text)
+            status.value = ImportStatus(busy = true, message = "Citesc fișierele…")
+            val files = withContext(Dispatchers.IO) { uris.flatMap { readLessons(context, it) } }
+            when {
+                files.isEmpty() -> status.value = ImportStatus(message = "Nu am găsit lecții .md în fișierele alese.")
+                files.size == 1 && files[0].second != null -> {
+                    status.value = ImportStatus()
+                    importText(files[0].second!!)
+                }
+                else -> importMany(files)
+            }
         }
+    }
+
+    /** Many lessons: saved at once without Groq; questions are prepared afterwards, paced. */
+    private suspend fun importMany(files: List<Pair<String, String?>>) {
+        var added = 0
+        val problems = mutableListOf<String>()
+        for ((i, f) in files.withIndex()) {
+            val (name, text) = f
+            status.value = ImportStatus(busy = true, message = "Adaug lecțiile… ${i + 1} din ${files.size}")
+            if (text == null) {
+                problems += "$name: nu am putut citi fișierul"
+                continue
+            }
+            when (val r = withContext(Dispatchers.IO) { c.lessons.import(text, enrich = false) }) {
+                is ImportResult.Ok -> added++
+                is ImportResult.Rejected -> if (!r.message.contains("există deja")) problems += "$name: ${r.message}"
+            }
+        }
+        val skipped = files.size - added - problems.size
+        val parts = buildList {
+            add("Am adăugat ${RomanianText.count(added, "lecție", "lecții")}.")
+            if (skipped > 0) add("${RomanianText.count(skipped, "lecție era", "lecții erau")} deja în aplicație.")
+            if (added > 0) add("Apasă „Pregătește întrebările” ca Capy să le pregătească, câte una.")
+            if (problems.isNotEmpty()) add("Nu am putut adăuga:\n" + problems.joinToString("\n") { "• $it" })
+        }
+        status.value = ImportStatus(message = parts.joinToString(" "), ok = problems.isEmpty())
     }
 
     fun consumed() {
@@ -116,6 +161,37 @@ class ParentHomeViewModel(private val c: AppContainer) : ViewModel() {
 
     companion object {
         private const val MAX_BYTES = 200_000
+
+        private const val MAX_FILES = 300
+
+        /** (file name, text or null when unreadable) for one picked file; a .zip gives every .md inside. */
+        fun readLessons(context: Context, uri: Uri): List<Pair<String, String?>> {
+            val name = displayName(context, uri) ?: "lecție"
+            val isZip = name.endsWith(".zip", ignoreCase = true) ||
+                context.contentResolver.getType(uri)?.contains("zip") == true
+            if (!isZip) return listOf(name to readLesson(context, uri))
+            return runCatching {
+                val out = mutableListOf<Pair<String, String?>>()
+                context.contentResolver.openInputStream(uri)?.use { raw ->
+                    java.util.zip.ZipInputStream(raw).use { zip ->
+                        while (out.size < MAX_FILES) {
+                            val e = zip.nextEntry ?: break
+                            val entry = e.name.substringAfterLast('/')
+                            if (e.isDirectory || !entry.endsWith(".md", ignoreCase = true) || entry.startsWith(".") || e.name.contains("__MACOSX")) continue
+                            val bytes = zip.readNBytesCompat(MAX_BYTES + 1)
+                            out += entry to (if (bytes.size > MAX_BYTES) null else bytes.toString(Charsets.UTF_8))
+                        }
+                    }
+                }
+                out.sortedBy { it.first }
+            }.getOrElse { listOf(name to null) }
+        }
+
+        private fun displayName(context: Context, uri: Uri): String? = runCatching {
+            context.contentResolver.query(uri, arrayOf(android.provider.OpenableColumns.DISPLAY_NAME), null, null, null)?.use { c ->
+                if (c.moveToFirst()) c.getString(0) else null
+            }
+        }.getOrNull()
 
         fun readLesson(context: Context, uri: Uri): String? = runCatching {
             context.contentResolver.openInputStream(uri)?.use { input ->
@@ -150,9 +226,11 @@ fun ParentHomeScreen(
 ) {
     val lessons by vm.lessons.collectAsStateWithLifecycle()
     val status by vm.status.collectAsStateWithLifecycle()
+    val queue by vm.queue.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val c = CapyTheme.colors
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if (uri != null) vm.importUri(context, uri) }
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> vm.importUris(context, uris) }
+    val missing = lessons.count { !it.enriched }
     LaunchedEffect(shared) {
         if (shared != null) {
             vm.importText(shared)
@@ -170,31 +248,52 @@ fun ParentHomeScreen(
             verticalArrangement = Arrangement.spacedBy(CapyDimens.itemGap),
         ) {
             item {
-                CapyPrimaryButton("Adaugă o lecție (.md)", loading = status.busy) {
-                    picker.launch(arrayOf("text/*", "application/octet-stream"))
+                CapyPrimaryButton("Adaugă lecții (.md sau .zip)", loading = status.busy) {
+                    picker.launch(arrayOf("text/*", "application/zip", "application/x-zip-compressed", "application/octet-stream"))
                 }
             }
             status.message?.let { m ->
                 item { CapyBanner(m, if (status.busy || status.ok) BannerKind.INFO else BannerKind.NOT_YET) }
             }
-            item { SectionTitle("Lecții") }
-            if (lessons.isEmpty()) {
-                item { Text("Nicio lecție încă. Adaugă un fișier .md făcut după șablon.", style = CapyTheme.type.body, color = c.textSecondary) }
+            if (missing > 0 || queue.running || queue.text != null) {
+                item {
+                    CapyCard {
+                        Text(
+                            if (missing > 0) "${RomanianText.count(missing, "lecție nu are", "lecții nu au")} încă întrebări." else "Toate lecțiile au întrebări.",
+                            style = CapyTheme.type.body,
+                            color = c.text,
+                        )
+                        queue.text?.let { Text(it, style = CapyTheme.type.caption, color = c.textSecondary) }
+                        if (queue.running) {
+                            CapySecondaryButton("Oprește", onClick = vm::stopPreparing)
+                        } else if (missing > 0) {
+                            CapySecondaryButton("Pregătește întrebările", onClick = vm::prepareAll)
+                            Text(
+                                "Câte o lecție pe rând, cu pauze când Groq cere. Planul gratuit ajunge pentru aproximativ 25–30 de lecții pe zi; restul continuă mâine.",
+                                style = CapyTheme.type.caption,
+                                color = c.textSecondary,
+                            )
+                        }
+                    }
+                }
             }
-            items(lessons, key = { it.id }) { l ->
-                CapyListRow(
-                    title = l.title,
-                    caption = listOf(
-                        l.subject,
-                        when {
+            if (lessons.isEmpty()) {
+                item { Text("Nicio lecție încă. Adaugă fișiere .md făcute după șablon, sau un .zip cu ele.", style = CapyTheme.type.body, color = c.textSecondary) }
+            }
+            lessonsByChapter(lessons).forEach { (header, list) ->
+                item(key = "h-$header") { SectionTitle(header) }
+                items(list, key = { it.id }) { l ->
+                    CapyListRow(
+                        title = l.title,
+                        caption = when {
                             l.status == LessonEntity.READY -> "gata pentru copil"
                             !l.enriched -> "fără întrebări încă"
                             else -> "de verificat"
                         },
-                    ).joinToString(" · "),
-                    leading = { SubjectDot(subjectColor(c, l.subject)) },
-                    onClick = { onLesson(l.id) },
-                )
+                        leading = { SubjectDot(subjectColor(c, l.subject)) },
+                        onClick = { onLesson(l.id) },
+                    )
+                }
             }
             item { SectionTitle("Telefon") }
             item {
@@ -209,6 +308,16 @@ fun ParentHomeScreen(
         }
     }
 }
+
+/** "Istorie · Unitatea I. Preistorie" → its lessons; units in the book's order, lessons by title. */
+internal fun lessonsByChapter(lessons: List<LessonEntity>): List<Pair<String, List<LessonEntity>>> =
+    lessons.groupBy { it.subject to it.chapter }
+        .toList()
+        .sortedWith(compareBy<Pair<Pair<String, String?>, List<LessonEntity>>> { it.first.first }.thenBy(Chapters.order) { it.first.second })
+        .map { (key, list) ->
+            val (subject, chapter) = key
+            (if (chapter.isNullOrBlank()) subject else "$subject · $chapter") to list.sortedBy { it.title.lowercase() }
+        }
 
 @Composable
 internal fun RowIcon(res: Int) {
