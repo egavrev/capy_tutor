@@ -71,6 +71,8 @@ jobs:
           if ls app/build/outputs/apk/release/*-release.apk >/dev/null 2>&1; then
             cp app/build/outputs/apk/release/*-release.apk /tmp/out/capy-tutor.apk
           fi
+          # Room schemas, so they can be committed before a database version change (auto-migrations need them).
+          cp -r data/schemas /tmp/out/schemas 2>/dev/null || true
           cd /tmp/out
           printf 'Built from %s on %s\n' "$GITHUB_SHA" "$(date -u +%Y-%m-%dT%H:%MZ)" > BUILD.txt
           cat /tmp/tests.txt >> BUILD.txt
