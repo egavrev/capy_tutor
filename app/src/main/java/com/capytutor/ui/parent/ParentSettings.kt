@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.capytutor.AppContainer
 import com.capytutor.R
+import com.capytutor.core.RomanianText
 import com.capytutor.data.db.UsageTotal
 import com.capytutor.data.settings.ChildGender
 import com.capytutor.ui.components.BannerKind
@@ -119,7 +120,7 @@ fun UsageScreen(c: AppContainer, onBack: () -> Unit) {
         )
         CapyCard {
             Text("Azi, în total", style = CapyTheme.type.label, color = col.textSecondary)
-            Text("${total.requests} cereri · ${total.inputTokens + total.outputTokens} tokeni", style = CapyTheme.type.title, color = col.text)
+            Text("${RomanianText.count(total.requests, "cerere", "cereri")} · ${RomanianText.count(total.inputTokens + total.outputTokens, "token", "tokeni")}", style = CapyTheme.type.title, color = col.text)
             Text(
                 "Secunde audio: ${total.audioSeconds} · Pauze din cauza limitei: ${total.rateLimitedCount}",
                 style = CapyTheme.type.caption, color = col.textSecondary,
@@ -132,7 +133,7 @@ fun UsageScreen(c: AppContainer, onBack: () -> Unit) {
             CapyCard {
                 Text(callTypeName(r.callType), style = CapyTheme.type.label, color = col.text)
                 Text(
-                    "${r.requests} cereri · ${r.inputTokens} tokeni trimiși · ${r.outputTokens} primiți" +
+                    "${RomanianText.count(r.requests, "cerere", "cereri")} · ${RomanianText.count(r.inputTokens, "token trimis", "tokeni trimiși")} · ${r.outputTokens} primiți" +
                         if (r.rateLimitedCount > 0) " · ${r.rateLimitedCount} limitate" else "",
                     style = CapyTheme.type.body, color = col.textSecondary,
                 )

@@ -17,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.capytutor.AppContainer
 import com.capytutor.R
+import com.capytutor.core.RomanianText
 import com.capytutor.core.session.CheckResult
 import com.capytutor.core.session.Outcome
 import com.capytutor.core.session.SessionCodec
@@ -76,7 +77,7 @@ fun HistoryScreen(vm: HistoryViewModel, onBack: () -> Unit) {
                     style = CapyTheme.type.title,
                     color = col.text,
                 )
-                Text("${s.callsUsed} cereri · ${s.tokensUsed} tokeni", style = CapyTheme.type.caption, color = col.textSecondary)
+                Text("${RomanianText.count(s.callsUsed, "cerere", "cereri")} · ${RomanianText.count(s.tokensUsed, "token", "tokeni")}", style = CapyTheme.type.caption, color = col.textSecondary)
                 if (item.parentNote.isNotBlank()) Text(item.parentNote, style = CapyTheme.type.body, color = col.text)
                 item.results.forEach { r -> ResultRow(r) { accept -> vm.decide(s.id, r.ideaKey, accept) } }
             }

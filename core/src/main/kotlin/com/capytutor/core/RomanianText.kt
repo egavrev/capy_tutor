@@ -30,4 +30,17 @@ object RomanianText {
             .replace(combiningMarks, "")
 
     private val combiningMarks = Regex("\\p{M}+")
+
+    /**
+     * A number with the right Romanian noun form: "1 cerere", "3 cereri", "20 de cereri",
+     * "101 cereri" (the "de" form after numbers ending in 20–99, or exact hundreds).
+     */
+    fun count(n: Int, one: String, many: String): String {
+        val r = kotlin.math.abs(n) % 100
+        return when {
+            n == 1 -> "1 $one"
+            n != 0 && (r == 0 || r >= 20) -> "$n de $many"
+            else -> "$n $many"
+        }
+    }
 }

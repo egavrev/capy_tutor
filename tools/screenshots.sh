@@ -131,6 +131,7 @@ sleep 2
 tap "Oprește, am terminat" 3
 shot 14_transcribed 1
 tap "Trimite"
+tap "Scriu cu tastatura"
 tap "Scrie ce ții minte…" && type_text "Oamenii faceau unelte din piatra."
 tap "Trimite"
 hide_keyboard
