@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   build:
@@ -143,6 +144,21 @@ jobs:
           git show origin/builds:capy-tutor-debug.apk > app.apk
           ls -la app.apk
 
+      # Upgrade test: the last APK with the previous database version is installed first, with
+      # lessons, then this APK over it (tools/screenshots.sh, step 0). Update the commit when the
+      # Room version changes again.
+      - name: Previous APK for the upgrade test
+        env:
+          GH_TOKEN: ${{ github.token }}
+          UPGRADE_FROM_SHA: d4a9b981d99d09f1d2dbd72949627222e07e367b
+        run: |
+          run=$(gh api "repos/${{ github.repository }}/actions/runs?head_sha=$UPGRADE_FROM_SHA" --jq '[.workflow_runs[] | select(.name=="Android build" and .conclusion=="success")][0].id' || true)
+          if [ -n "$run" ] && [ "$run" != "null" ]; then
+            gh run download "$run" -R "${{ github.repository }}" -n capy-tutor-apk -D prev || true
+            find prev -name '*-debug.apk' -exec cp {} prev.apk \; 2>/dev/null || true
+          fi
+          ls -la prev.apk 2>/dev/null || echo "::notice::no previous APK, upgrade test skipped"
+
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -158,7 +174,7 @@ jobs:
           profile: pixel_6
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-boot-anim -camera-back none
-          script: adb install -r app.apk && OUT=shots bash tools/screenshots.sh
+          script: OUT=shots bash tools/screenshots.sh
 
       - name: Publish screenshots to the screenshots branch
         if: always()

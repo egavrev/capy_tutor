@@ -95,6 +95,22 @@ adb logcat -c
 adb shell cmd uimode night no
 adb shell settings put system font_scale 1.0
 
+# ---- 0. Upgrade: the previous database version's APK with lessons, then this one over it ------
+# (prev.apk is fetched by the workflow: the last build before the Room version changed.)
+if [ -f "${PREV_APK:-prev.apk}" ]; then
+  adb uninstall $PKG >/dev/null 2>&1
+  adb install "${PREV_APK:-prev.apk}" >/dev/null && log "installed the previous APK"
+  start 1
+  sleep 3
+  adb install -r "${APK:-app.apk}" >/dev/null && log "installed this APK over it"
+  start 1
+  shot 00_upgrade_home
+  if has "Apariția omului*"; then log "upgrade kept the lessons"; else log "!! upgrade lost the lessons"; fi
+  adb shell pm clear $PKG >/dev/null
+else
+  adb install -r "${APK:-app.apk}" >/dev/null && log "installed this APK"
+fi
+
 # ---- 1. First launch: setup for the parent --------------------------------------------------
 start fresh
 shot 01_setup_welcome
@@ -175,6 +191,56 @@ shot 24_summary
 tap "Gata pe azi"
 shot 25_done 1
 tap "Înapoi acasă"
+shot 25b_home_bows 1
+
+# ---- 4b. Recapitulare: a quiz of every type, killed in the middle, then Capy's corner ---------
+tap "Recapitulare"
+shot 26a_recap
+tap "Apariția omului*"
+shot 26b_quiz_choice
+tap "În Africa"
+shot 26c_choice_selected 1
+tap "Verifică"
+shot 26d_feedback_right 1
+tap "Mai departe"
+tap "Adevărat"
+tap "Verifică"
+shot 26e_truefalse_not_yet 1
+tap "Mai departe"
+log "force-stop in the middle of the quiz"
+start 1
+tap "Recapitulare"
+tap "Apariția omului*"
+shot 26f_quiz_resumed_order
+tap "Trăiește Lucy*" 0.8
+tap "Primele unelte*" 0.8
+shot 26g_order_placed 1
+tap "Scheletul lui Lucy*" 0.8
+tap "Verifică"
+shot 26h_order_right 1
+tap "Mai departe"
+shot 26i_match
+tap "fosilă" 0.8
+tap "urmă a unei ființe*" 0.8
+tap "paleolitic" 0.8
+tap "obiect cu care*" 0.8
+shot 26j_match_paired 1
+tap "epoca veche a pietrei" 0.8
+tap "Verifică"
+shot 26k_match_not_yet 1
+tap "Mai departe"
+tap "Din vânătoare*"; tap "Verifică"; tap "Mai departe"
+tap "Adevărat"; tap "Verifică"; tap "Mai departe"
+tap "În peșteri sau colibe"; tap "Verifică"; tap "Mai departe"
+shot 26l_quiz_results 1
+tap "Refac testul"
+shot 26m_quiz_again 1
+adb shell input keyevent 4; sleep 1.5
+tap "Colțul lui Capy"
+shot 26n_corner
+adb shell input swipe 540 1700 540 500 300; sleep 1
+shot 26o_corner_shelf 1
+tap "Acasă"
 
 # ---- 5. Parent mode ----------------------------------------------------------------------------
 tap "Mod părinte"
@@ -187,6 +253,12 @@ tap "Pământul*"
 shot 29_review
 tap "Vezi și editează tot"
 shot 30_review_edit 1
+for i in 1 2 3 4 5 6 7 8; do
+  has "Vezi întrebările" && break
+  adb shell input swipe 540 1900 540 500 300; sleep 0.8
+done
+tap "Vezi întrebările"
+shot 30b_review_quiz 1
 adb shell input keyevent 4; sleep 1.5
 tap "Setări"
 tap "Vocea lui Capy"
@@ -229,6 +301,19 @@ tap "Scrie sau apasă microfonul" && type_text "in Asia"
 tap "Trimite" 3
 hide_keyboard
 shot 39_hint_dark_speaker 1
+adb shell input keyevent 4; sleep 1.5
+tap "Recapitulare"
+shot 39b_recap_dark
+tap "Apariția omului*"
+tap "În Egipt"
+tap "Verifică"
+shot 39c_quiz_dark_not_yet 1
+tap "Mai departe"
+tap "Fals"; tap "Verifică"; tap "Mai departe"
+shot 39d_order_dark 1
+adb shell input keyevent 4; sleep 1.5
+tap "Colțul lui Capy"
+shot 39e_corner_dark
 adb shell cmd uimode night no
 
 adb shell settings put system font_scale 1.3
@@ -236,6 +321,13 @@ start 1
 shot 40_home_font130
 tap "Apariția omului*"
 shot 41_session_font130
+adb shell input keyevent 4; sleep 1.5
+tap "Recapitulare"
+tap "Apariția omului*"
+shot 42_quiz_font130
+adb shell input keyevent 4; sleep 1.5
+tap "Colțul lui Capy"
+shot 43_corner_font130
 adb shell settings put system font_scale 1.0
 
 adb logcat -d > "$OUT/logcat.txt"
