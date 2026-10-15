@@ -31,7 +31,7 @@ The latest APKs are on the [`builds`](../../tree/builds) branch:
 
 The screenshots are on the [`screenshots`](../../tree/screenshots) branch (`TOUR.txt` lists every step).
 
-**Trying it on the Mac's Android emulator (optional, about 6–8 GB, no Android Studio):**
+**Trying it on the Mac's Android emulator (optional, about 6–8 GB, no Android Studio):** `bash tools/mac-emulator.sh` (or `… demo`) does all of the steps below and opens the app. By hand:
 ```
 brew install --cask android-commandlinetools
 export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
