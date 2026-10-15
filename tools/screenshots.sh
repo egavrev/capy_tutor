@@ -77,9 +77,13 @@ tap() { # tap "label" [wait]
 
 has() { [ -n "$(find_node "$1")" ]; }
 
-type_text() { # ASCII only
-  local t=${1// /%s}
-  adb shell input text "$t"
+type_text() { # ASCII only; typed in short pieces so the IME keeps up
+  local rest=$1 piece
+  while [ -n "$rest" ]; do
+    piece=${rest:0:24}; rest=${rest:24}
+    adb shell input text "${piece// /%s}"
+    sleep 0.6
+  done
   sleep 1
 }
 
@@ -195,8 +199,12 @@ shot 31_lesson_ready_dark
 tap "Hai să începem"
 tap "Scrie ce ții minte…" && type_text "Oamenii traiau in pesteri si faceau focul."
 tap "Trimite"
-tap "Gata, am terminat" 3
-shot 32_coverage_dark 1
+# Kill the app while Capy is thinking: on reopen the same check runs again.
+tap "Gata, am terminat" 0.1
+log "force-stop while Capy is thinking"
+start 1
+tap "Apariția omului*" 3
+shot 32_coverage_dark_after_kill 1
 tap "Hai să le căutăm împreună"
 tap "Scrie aici…" && type_text "in Asia"
 tap "Trimite" 3

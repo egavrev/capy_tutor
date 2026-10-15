@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.capytutor.R
 import com.capytutor.core.pack.LessonPack
@@ -73,6 +74,7 @@ fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit) {
                 style = CapyTheme.type.title,
                 color = CapyTheme.colors.text,
                 maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
             IconButton(onClick = onClose, modifier = Modifier.size(CapyDimens.touchTarget)) {

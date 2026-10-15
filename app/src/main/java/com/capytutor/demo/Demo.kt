@@ -62,8 +62,7 @@ object DemoSessionAi : SessionAi {
         val ideas = pack.ideas.map { i ->
             val n = KeywordMatcher.matchedGroups(transcript, i.keywords)
             val status = when {
-                n >= i.keywords.size.coerceAtMost(2) && n > 0 -> CoverageStatus.COVERED
-                n > 0 -> CoverageStatus.PARTIAL
+                n > 0 -> CoverageStatus.COVERED
                 else -> CoverageStatus.MISSED
             }
             RecallIdea(i.id, status, "", "")
