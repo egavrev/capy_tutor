@@ -9,7 +9,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -85,11 +88,11 @@ fun CapyBottomNav(selected: ChildTab, onSelect: (ChildTab) -> Unit) {
     val c = CapyTheme.colors
     Surface(color = c.surface) {
         androidx.compose.foundation.layout.Column {
-            androidx.compose.material3.HorizontalDivider(thickness = CapyDimens.border, color = c.line)
+            HorizontalDivider(thickness = CapyDimens.border, color = c.line)
             NavigationBar(containerColor = c.surface, tonalElevation = CapyDimens.border * 0, modifier = Modifier.heightIn(min = CapyDimens.bottomNavHeight)) {
                 ChildTab.entries.forEach { tab ->
                     val on = tab == selected
-                    androidx.compose.material3.NavigationBarItem(
+                    NavigationBarItem(
                         selected = on,
                         onClick = { if (!on) onSelect(tab) },
                         icon = { Icon(painterResource(tab.icon), contentDescription = null, modifier = Modifier.size(CapyDimens.icon)) },
@@ -100,7 +103,7 @@ fun CapyBottomNav(selected: ChildTab, onSelect: (ChildTab) -> Unit) {
                                 maxLines = 1,
                             )
                         },
-                        colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+                        colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = c.primary,
                             selectedTextColor = c.text,
                             indicatorColor = c.soft,
