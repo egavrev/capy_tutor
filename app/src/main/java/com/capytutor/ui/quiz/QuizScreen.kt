@@ -106,7 +106,12 @@ fun QuizScreen(vm: QuizViewModel, onClose: () -> Unit) {
                     val right = s.results[s.index] == true
                     FeedbackPanel(
                         kind = if (right) FeedbackKind.RIGHT else FeedbackKind.NOT_YET,
-                        text = if (right) "Corect! ${q.explanation}" else "Încă nu. Răspunsul este: ${QuizGrader.rightAnswerText(q)}. ${q.explanation}",
+                        text = when {
+                            right -> "Corect! ${q.explanation}"
+                            // Order and match show the right answer as cards above; the panel stays short.
+                            q is QuizQuestion.Order || q is QuizQuestion.Match -> "Încă nu. ${q.explanation}"
+                            else -> "Încă nu. Răspunsul este: ${QuizGrader.rightAnswerText(q)}. ${q.explanation}"
+                        },
                         onContinue = vm::next,
                     )
                 } else {
@@ -168,6 +173,10 @@ private fun OrderBody(vm: QuizViewModel, ui: QuizUi, q: QuizQuestion.Order, s: Q
         order.forEachIndexed { place, item ->
             AnswerCard(q.items[item], if (item == place) AnswerState.RIGHT else AnswerState.NOT_YET, badge = place + 1, role = Role.Button)
         }
+        if (s.results[s.index] != true) {
+            SectionTitle("Ordinea bună")
+            q.items.forEachIndexed { place, item -> AnswerCard(item, AnswerState.RIGHT, badge = place + 1, role = Role.Button) }
+        }
         return
     }
     Hint("Atinge-le pe rând, în ordinea bună. Atinge din nou ca să schimbi.")
@@ -196,6 +205,10 @@ private fun MatchBody(vm: QuizViewModel, ui: QuizUi, q: QuizQuestion.Match, s: Q
                 badge = left + 1,
                 role = Role.Button,
             )
+        }
+        if (s.results[s.index] != true) {
+            SectionTitle("Perechile bune")
+            q.pairs.forEachIndexed { i, (l, r) -> AnswerCard("$l – $r", AnswerState.RIGHT, badge = i + 1, role = Role.Button) }
         }
         return
     }

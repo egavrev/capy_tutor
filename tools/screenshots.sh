@@ -305,7 +305,7 @@ adb shell input keyevent 4; sleep 1.5
 tap "Recapitulare"
 shot 39b_recap_dark
 tap "Apariția omului*"
-tap "În Egipt"
+tap "În Europa"
 tap "Verifică"
 shot 39c_quiz_dark_not_yet 1
 tap "Mai departe"

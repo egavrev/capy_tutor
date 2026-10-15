@@ -89,7 +89,7 @@ fun CornerScreen(vm: CornerViewModel, onTab: (ChildTab) -> Unit) {
                         Text(
                             when (val next = CornerItem.next(total)) {
                                 null -> "Colțul lui Capy e gata, cu tot ce-i trebuie. Mulțumesc!"
-                                else -> "Încă ${bowsText(next.second)} și în colț apare: ${next.first.label.lowercase()}."
+                                else -> "Încă ${bowsText(next.second)} și în colț apare: ${next.first.label.replaceFirstChar { it.lowercase() }}."
                             },
                             style = CapyTheme.type.body,
                             color = c.textSecondary,

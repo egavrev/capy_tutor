@@ -69,7 +69,7 @@ fun BowCounter(total: Int, modifier: Modifier = Modifier, onClick: (() -> Unit)?
             horizontalArrangement = Arrangement.spacedBy(CapyDimens.itemGap / 2),
         ) {
             Box(Modifier.heightIn(min = CapyDimens.touchTarget), contentAlignment = Alignment.Center) {
-                Image(painterResource(R.drawable.ic_capy_bow_earned), contentDescription = null, modifier = Modifier.size(CapyDimens.icon))
+                Icon(painterResource(R.drawable.ic_capy_bow), contentDescription = null, tint = c.onReward, modifier = Modifier.size(CapyDimens.icon))
             }
             Text("$total", style = CapyTheme.type.label, color = c.onReward)
         }
