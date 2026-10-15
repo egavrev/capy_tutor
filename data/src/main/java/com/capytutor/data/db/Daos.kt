@@ -117,3 +117,62 @@ interface UsageDao {
     )
     fun observeDay(date: String): Flow<List<UsageTotal>>
 }
+
+@Dao
+interface QuizDao {
+    @Query("SELECT * FROM quiz WHERE lessonId = :lessonId")
+    suspend fun get(lessonId: Long): QuizEntity?
+
+    @Query("SELECT * FROM quiz WHERE lessonId = :lessonId")
+    fun observe(lessonId: Long): Flow<QuizEntity?>
+
+    @Query("SELECT lessonId FROM quiz")
+    fun observeLessonIds(): Flow<List<Long>>
+
+    @Query("SELECT lessonId FROM quiz")
+    suspend fun lessonIds(): List<Long>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(quiz: QuizEntity)
+
+    @Query("DELETE FROM quiz WHERE lessonId = :lessonId")
+    suspend fun delete(lessonId: Long)
+
+    @Query("SELECT * FROM quiz_attempt WHERE lessonId = :lessonId AND finishedAt IS NULL ORDER BY startedAt DESC LIMIT 1")
+    suspend fun openAttempt(lessonId: Long): QuizAttemptEntity?
+
+    @Query("SELECT * FROM quiz_attempt WHERE finishedAt IS NOT NULL ORDER BY finishedAt DESC")
+    fun observeFinished(): Flow<List<QuizAttemptEntity>>
+
+    @Query("SELECT * FROM quiz_attempt WHERE lessonId = :lessonId AND finishedAt IS NOT NULL ORDER BY finishedAt DESC")
+    fun observeFinishedFor(lessonId: Long): Flow<List<QuizAttemptEntity>>
+
+    @Query("SELECT * FROM quiz_attempt WHERE id = :id")
+    suspend fun attempt(id: Long): QuizAttemptEntity?
+
+    @Insert
+    suspend fun insertAttempt(attempt: QuizAttemptEntity): Long
+
+    @Update
+    suspend fun updateAttempt(attempt: QuizAttemptEntity)
+
+    /** A new quiz replaces the old one; unfinished attempts of the old one cannot continue. */
+    @Query("DELETE FROM quiz_attempt WHERE lessonId = :lessonId AND finishedAt IS NULL")
+    suspend fun dropOpenAttempts(lessonId: Long)
+}
+
+@Dao
+interface BowDao {
+    /** Ignored when the session already has its bows (one award per session). */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(award: BowAwardEntity): Long
+
+    @Query("SELECT * FROM bow_award ORDER BY at")
+    fun observeAll(): Flow<List<BowAwardEntity>>
+
+    @Query("SELECT MAX(bows) FROM bow_award WHERE lessonId = :lessonId")
+    suspend fun best(lessonId: Long): Int?
+
+    @Query("SELECT * FROM bow_award WHERE sessionId = :sessionId")
+    suspend fun forSession(sessionId: Long): BowAwardEntity?
+}

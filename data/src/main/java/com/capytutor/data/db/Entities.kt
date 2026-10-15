@@ -125,3 +125,53 @@ data class ProviderUsageEntity(
     val rateLimitedCount: Int,
     val outcome: String,
 )
+
+// ---- E11 · Quiz (database version 2) ---------------------------------------------------------
+
+/** A lesson's quiz (QuizSchema JSON), prepared in advance or made by Groq. */
+@Entity(
+    tableName = "quiz",
+    foreignKeys = [ForeignKey(entity = LessonEntity::class, parentColumns = ["id"], childColumns = ["lessonId"], onDelete = ForeignKey.CASCADE)],
+)
+data class QuizEntity(
+    @PrimaryKey val lessonId: Long,
+    val json: String,
+    /** "prepared" (a .quiz.json file) or "groq". */
+    val source: String,
+    val createdAt: Long,
+)
+
+/** One go at a quiz; [state] is the whole QuizState (QuizStateCodec), saved after every answer. */
+@Entity(
+    tableName = "quiz_attempt",
+    foreignKeys = [ForeignKey(entity = LessonEntity::class, parentColumns = ["id"], childColumns = ["lessonId"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index("lessonId")],
+)
+data class QuizAttemptEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val lessonId: Long,
+    val startedAt: Long,
+    val finishedAt: Long?,
+    val state: String,
+    val correct: Int,
+    val total: Int,
+)
+
+// ---- E12 · Bows ----------------------------------------------------------------------------------
+
+/**
+ * Bows earned by one finished session. Kept even if the lesson is deleted later (no foreign key,
+ * the title is copied): what the child earned is never taken away.
+ */
+@Entity(tableName = "bow_award", indices = [Index(value = ["sessionId"], unique = true), Index("lessonId")])
+data class BowAwardEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val lessonId: Long,
+    val lessonTitle: String,
+    val sessionId: Long,
+    /** 1–3 for this session. */
+    val bows: Int,
+    /** How many of them were new for the lesson (above its best so far); the total is the sum of these. */
+    val added: Int,
+    val at: Long,
+)

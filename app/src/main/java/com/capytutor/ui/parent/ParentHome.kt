@@ -91,6 +91,7 @@ class ParentHomeViewModel(private val c: AppContainer) : ViewModel() {
     val lessons: StateFlow<List<LessonEntity>> = c.lessons.observeLessons().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
     val status = MutableStateFlow(ImportStatus())
     val queue = c.questionQueue.state
+    val quizIds: StateFlow<List<Long>> = c.quizzes.observeLessonIds().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun prepareAll() = c.questionQueue.start()
     fun stopPreparing() = c.questionQueue.stop()
@@ -118,26 +119,33 @@ class ParentHomeViewModel(private val c: AppContainer) : ViewModel() {
         viewModelScope.launch {
             status.value = ImportStatus(busy = true, message = "Citesc fișierele…")
             val all = withContext(Dispatchers.IO) { uris.flatMap { readLessons(context, it) } }
-            // "x.questions.json" next to "x.md": questions prepared in advance, no Groq needed.
-            val questions = all.filter { it.first.endsWith(QUESTIONS_SUFFIX, ignoreCase = true) }
-                .associate { it.first.dropLast(QUESTIONS_SUFFIX.length).lowercase() to it.second }
-            val files = all.filterNot { it.first.endsWith(QUESTIONS_SUFFIX, ignoreCase = true) }
+            // "x.questions.json" and "x.quiz.json" next to "x.md": prepared in advance, no Groq needed.
+            fun prepared(suffix: String) = all.filter { it.first.endsWith(suffix, ignoreCase = true) }
+                .associate { it.first.dropLast(suffix.length).lowercase() to it.second }
+            val questions = prepared(QUESTIONS_SUFFIX)
+            val quizzes = prepared(QUIZ_SUFFIX)
+            val files = all.filterNot { it.first.endsWith(QUESTIONS_SUFFIX, ignoreCase = true) || it.first.endsWith(QUIZ_SUFFIX, ignoreCase = true) }
             when {
                 files.isEmpty() -> status.value = ImportStatus(message = "Nu am găsit lecții .md în fișierele alese.")
-                files.size == 1 && files[0].second != null && questions.isEmpty() -> {
+                files.size == 1 && files[0].second != null && questions.isEmpty() && quizzes.isEmpty() -> {
                     status.value = ImportStatus()
                     importText(files[0].second!!)
                 }
-                else -> importMany(files, questions)
+                else -> importMany(files, questions, quizzes)
             }
         }
     }
 
     /** Many lessons: saved at once without Groq; questions are prepared afterwards, paced. */
-    private suspend fun importMany(files: List<Pair<String, String?>>, questions: Map<String, String?> = emptyMap()) {
+    private suspend fun importMany(
+        files: List<Pair<String, String?>>,
+        questions: Map<String, String?> = emptyMap(),
+        quizzes: Map<String, String?> = emptyMap(),
+    ) {
         var added = 0
         var withQuestions = 0
         var completed = 0
+        var withQuiz = 0
         val problems = mutableListOf<String>()
         for ((i, f) in files.withIndex()) {
             val (name, text) = f
@@ -158,12 +166,24 @@ class ParentHomeViewModel(private val c: AppContainer) : ViewModel() {
                 }
                 is ImportResult.Rejected -> if (!r.message.contains("există deja")) problems += "$name: ${r.message}"
             }
+            // The quiz goes to the lesson made from this file, new or already in the app.
+            val quiz = quizzes[name.removeSuffix(".md").lowercase()]
+            if (quiz != null) {
+                val id = (r as? ImportResult.Ok)?.lessonId ?: withContext(Dispatchers.IO) { c.lessons.idForMarkdown(text) }
+                if (id != null) {
+                    when (val problem = withContext(Dispatchers.IO) { c.quizzes.importPrepared(id, quiz) }) {
+                        null -> withQuiz++
+                        else -> problems += "$name: $problem"
+                    }
+                }
+            }
         }
-        val skipped = files.size - added - completed - problems.count { !it.contains("Întrebările pregătite") }
+        val skipped = files.size - added - completed - problems.count { !it.contains("pregătit") }
         val parts = buildList {
             if (added > 0 || completed == 0) add("Am adăugat ${RomanianText.count(added, "lecție", "lecții")}.")
             if (completed > 0) add("Am pus întrebările pregătite la ${RomanianText.count(completed, "lecție", "lecții")} care erau deja în aplicație.")
             if (withQuestions > 0) add("${RomanianText.count(withQuestions, "lecție are", "lecții au")} deja întrebările pregătite.")
+            if (withQuiz > 0) add("Am pus quiz-ul la ${RomanianText.count(withQuiz, "lecție", "lecții")}.")
             if (withQuestions + completed > 0) add("Verifică lecțiile cu întrebări pregătite și marchează-le gata.")
             if (skipped > 0) add("${RomanianText.count(skipped, "lecție era", "lecții erau")} deja în aplicație.")
             if (added > withQuestions) add("Pentru celelalte, apasă „Pregătește întrebările”.")
@@ -181,6 +201,7 @@ class ParentHomeViewModel(private val c: AppContainer) : ViewModel() {
 
         private const val MAX_FILES = 300
         const val QUESTIONS_SUFFIX = ".questions.json"
+        const val QUIZ_SUFFIX = ".quiz.json"
 
         /** (file name, text or null when unreadable) for one picked file; a .zip gives every .md inside. */
         fun readLessons(context: Context, uri: Uri): List<Pair<String, String?>> {
@@ -195,7 +216,8 @@ class ParentHomeViewModel(private val c: AppContainer) : ViewModel() {
                         while (out.size < MAX_FILES) {
                             val e = zip.nextEntry ?: break
                             val entry = e.name.substringAfterLast('/')
-                            val wanted = entry.endsWith(".md", ignoreCase = true) || entry.endsWith(QUESTIONS_SUFFIX, ignoreCase = true)
+                            val wanted = entry.endsWith(".md", ignoreCase = true) || entry.endsWith(QUESTIONS_SUFFIX, ignoreCase = true) ||
+                                entry.endsWith(QUIZ_SUFFIX, ignoreCase = true)
                             if (e.isDirectory || !wanted || entry.startsWith(".") || entry.startsWith("TEMPLATE") || e.name.contains("__MACOSX")) continue
                             val bytes = zip.readNBytesCompat(MAX_BYTES + 1)
                             out += entry to (if (bytes.size > MAX_BYTES) null else bytes.toString(Charsets.UTF_8))
@@ -249,7 +271,9 @@ fun ParentHomeScreen(
     val context = LocalContext.current
     val c = CapyTheme.colors
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris -> vm.importUris(context, uris) }
+    val quizIds by vm.quizIds.collectAsStateWithLifecycle()
     val missing = lessons.count { !it.enriched }
+    val missingQuiz = lessons.count { it.enriched && it.id !in quizIds }
     LaunchedEffect(shared) {
         if (shared != null) {
             vm.importText(shared)
@@ -274,19 +298,23 @@ fun ParentHomeScreen(
             status.message?.let { m ->
                 item { CapyBanner(m, if (status.busy || status.ok) BannerKind.INFO else BannerKind.NOT_YET) }
             }
-            if (missing > 0 || queue.running || queue.text != null) {
+            if (missing > 0 || missingQuiz > 0 || queue.running || queue.text != null) {
                 item {
                     CapyCard {
                         Text(
-                            if (missing > 0) "${RomanianText.count(missing, "lecție nu are", "lecții nu au")} încă întrebări." else "Toate lecțiile au întrebări.",
+                            buildList {
+                                if (missing > 0) add("${RomanianText.count(missing, "lecție nu are", "lecții nu au")} încă întrebări.")
+                                if (missingQuiz > 0) add("${RomanianText.count(missingQuiz, "lecție nu are", "lecții nu au")} încă quiz.")
+                                if (isEmpty()) add("Toate lecțiile au întrebări și quiz.")
+                            }.joinToString(" "),
                             style = CapyTheme.type.body,
                             color = c.text,
                         )
                         queue.text?.let { Text(it, style = CapyTheme.type.caption, color = c.textSecondary) }
                         if (queue.running) {
                             CapySecondaryButton("Oprește", onClick = vm::stopPreparing)
-                        } else if (missing > 0) {
-                            CapySecondaryButton("Pregătește întrebările", onClick = vm::prepareAll)
+                        } else if (missing > 0 || missingQuiz > 0) {
+                            CapySecondaryButton(if (missing > 0) "Pregătește întrebările" else "Pregătește quiz-urile", onClick = vm::prepareAll)
                             Text(
                                 "Câte o lecție pe rând, cu pauze când Groq cere. Planul gratuit ajunge pentru aproximativ 25–30 de lecții pe zi; restul continuă mâine.",
                                 style = CapyTheme.type.caption,

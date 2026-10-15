@@ -1,6 +1,8 @@
 package com.capytutor.data.repo
 
 import com.capytutor.core.pack.LessonPack
+import com.capytutor.core.reward.Bows
+import com.capytutor.data.db.BowAwardEntity
 import com.capytutor.core.session.Phase
 import com.capytutor.core.session.SessionCodec
 import com.capytutor.core.session.SessionState
@@ -66,6 +68,7 @@ class SessionRepository(private val db: CapyDatabase, private val clock: () -> L
                 },
             )
         }
+        if (done) award(sessionId, row.lessonId, pack.title, state)
         val texts = pack.ideas.associate { it.id to it.text }
         if (done || state.results.any { it.retellStatus != null }) {
             val previous = sessions.results(sessionId).associateBy { it.ideaKey }
@@ -81,6 +84,23 @@ class SessionRepository(private val db: CapyDatabase, private val clock: () -> L
             )
         }
     }
+
+    /** E12: a finished session earns 1–3 bows, once; only bows above the lesson's best count toward the total. */
+    private suspend fun award(sessionId: Long, lessonId: Long, title: String, state: SessionState) {
+        val bows = db.bows()
+        if (bows.forSession(sessionId) != null) return
+        val earned = Bows.forSession(state.score, state.results.size)
+        val best = bows.best(lessonId) ?: 0
+        bows.insert(
+            BowAwardEntity(
+                lessonId = lessonId, lessonTitle = title, sessionId = sessionId,
+                bows = earned, added = Bows.added(best, earned), at = clock(),
+            ),
+        )
+    }
+
+    /** The bows a session earned, once it is finished. */
+    suspend fun bowsFor(sessionId: Long): BowAwardEntity? = db.bows().forSession(sessionId)
 
     /** The parent accepts or rejects an answer the child disputed ("Cred că am dreptate"). */
     suspend fun decide(sessionId: Long, ideaKey: String, accept: Boolean) {

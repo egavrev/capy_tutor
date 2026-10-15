@@ -16,6 +16,7 @@ object CoreConfig {
     const val ASSESS_RECALL = "assess_recall"
     const val ASSESS_ANSWER = "assess_answer"
     const val SUMMARIZE_SESSION = "summarize_session"
+    const val MAKE_QUIZ = "make_quiz"
     const val TRANSCRIBE = "transcribe"
 
     private val props: Properties by lazy {

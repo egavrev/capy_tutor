@@ -1,0 +1,32 @@
+Sarcină: scrii un quiz de recapitulare pentru lecția de mai jos. Îl joacă un copil de 10 ani, după ce a povestit lecția. Aplicația notează singură răspunsurile.
+
+Titlul lecției: {{title}}
+
+Textul lecției:
+<<<
+{{text}}
+>>>
+
+Ideile cheie (id: text):
+{{ideas}}
+
+Scrie între 6 și 8 întrebări, de cel puțin trei tipuri diferite dintre acestea:
+- "choice": o întrebare cu 3 sau 4 variante, una singură corectă. "answer" este textul exact al variantei corecte. Variantele greșite sunt plauzibile, din aceeași lecție sau temă, cam de aceeași lungime. Fără "toate variantele", fără "niciuna", fără întrebări cu "NU".
+- "truefalse": o afirmație ("statement") și "answer": true sau false (fără ghilimele). Cam jumătate adevărate, jumătate false. O afirmație falsă schimbă un singur fapt clar (un loc, o persoană, un număr). Fără duble negații.
+- "order": doar când lecția are o ordine sigură (ani, perioade, pași). 3–5 elemente scrise ÎN ORDINEA CORECTĂ, iar întrebarea spune direcția ("de la cel mai vechi la cel mai nou").
+- "match": 3 sau 4 perechi scrise corect potrivite (termen și sens, persoană și faptă, loc și fapt). Fiecare element din stânga se potrivește cu unul singur din dreapta.
+
+Pentru fiecare întrebare:
+- "ideas": id-urile ideilor cheie verificate (de exemplu ["i3"]). Acoperă cât mai multe idei, niciuna de mai mult de două ori.
+- "explanation": 1–2 propoziții blânde care spun din nou faptul corect, ca să-l învețe oricum ar fi răspuns. Niciodată "Greșit".
+- Doar fapte din lecție. Propoziții scurte, cuvinte simple. Întrebarea sau afirmația are cel mult 200 de caractere; fiecare variantă, element sau parte de pereche cel mult 80.
+
+Scrie într-o română corectă și naturală, cu ș și ț (virgulă dedesubt).
+
+Răspunde DOAR cu JSON, în forma:
+{"questions":[
+{"type":"choice","ideas":["i1"],"question":"...?","options":["...","...","..."],"answer":"...","explanation":"..."},
+{"type":"truefalse","ideas":["i2"],"statement":"...","answer":false,"explanation":"..."},
+{"type":"order","ideas":["i3","i4"],"question":"Pune în ordine, de la cel mai vechi la cel mai nou.","items":["...","...","..."],"explanation":"..."},
+{"type":"match","ideas":["i5"],"question":"Potrivește ...","pairs":[{"left":"...","right":"..."},{"left":"...","right":"..."},{"left":"...","right":"..."}],"explanation":"..."}
+]}

@@ -135,6 +135,12 @@ class LessonRepository(
         }
     }
 
+    suspend fun lesson(id: Long): LessonEntity? = lessons.get(id)
+
+    /** The lesson in the app made from this Markdown file (same content), if any. */
+    suspend fun idForMarkdown(markdown: String): Long? =
+        (LessonParser.parse(markdown) as? ParseResult.Ok)?.lesson?.let { lessons.byHash(it.sha256)?.id }
+
     /** Lessons whose hints and questions are not generated yet, oldest first. */
     suspend fun withoutQuestions(): List<LessonEntity> = lessons.all().filter { !it.enriched }
 

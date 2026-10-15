@@ -1,0 +1,23 @@
+{"questions": [
+  {"type": "choice", "ideas": ["i1"], "question": "Pe ce continent au trăit cei mai vechi strămoși ai omului?",
+   "options": ["În Europa", "În Africa", "În Asia", "În America"], "answer": "În Africa",
+   "explanation": "Cei mai vechi strămoși ai omului au trăit în Africa."},
+  {"type": "truefalse", "ideas": ["i3"], "statement": "Fosila Lucy a fost găsită în Egipt.", "answer": false,
+   "explanation": "Lucy a fost găsită în Etiopia și e veche de 3,2 milioane de ani."},
+  {"type": "order", "ideas": ["i3", "i4"], "question": "Pune-le în ordine, de la cel mai vechi la cel mai nou.",
+   "items": ["Trăiește Lucy (acum 3,2 milioane de ani)", "Primele unelte din piatră (acum 2,5 milioane de ani)", "Scheletul lui Lucy e descoperit (1974)"],
+   "explanation": "Lucy a trăit acum 3,2 milioane de ani, uneltele de piatră au apărut acum 2,5 milioane de ani, iar Lucy a fost găsită în 1974."},
+  {"type": "match", "ideas": ["i2", "i5", "i4"], "question": "Potrivește fiecare cuvânt cu ce înseamnă.",
+   "pairs": [{"left": "fosilă", "right": "urmă a unei ființe de demult"},
+             {"left": "paleolitic", "right": "epoca veche a pietrei"},
+             {"left": "unealtă", "right": "obiect cu care omul lucrează"}],
+   "explanation": "Fosila e o urmă păstrată în piatră, paleoliticul e epoca veche a pietrei, iar unealta e un obiect de lucru."},
+  {"type": "choice", "ideas": ["i6"], "question": "Din ce trăiau oamenii în paleolitic?",
+   "options": ["Din vânătoare, pescuit și cules", "Din comerț cu alte țări", "Din fabrici și ateliere"], "answer": "Din vânătoare, pescuit și cules",
+   "explanation": "În paleolitic oamenii vânau, pescuiau și culegeau fructe și semințe."},
+  {"type": "truefalse", "ideas": ["i7"], "statement": "Focul îi încălzea pe oameni și îi apăra de animale.", "answer": true,
+   "explanation": "Da! Focul le dădea căldură și ținea animalele departe."},
+  {"type": "choice", "ideas": ["i8"], "question": "Unde locuiau oamenii din paleolitic?",
+   "options": ["În case de cărămidă", "În peșteri sau colibe", "În castele"], "answer": "În peșteri sau colibe",
+   "explanation": "Oamenii din paleolitic locuiau în peșteri sau în colibe."}
+]}

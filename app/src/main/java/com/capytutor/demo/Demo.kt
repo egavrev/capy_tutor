@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.first
 /**
  * Debug builds only. The CI screenshot tour starts the app with the intent extra `capy_demo`:
  * the app is set up with a sample child ("Ana", PIN 1234), the two sample lessons with the
- * test bench's generated questions, and a keyword-only stand-in for the model. Nothing is sent
+ * test bench's generated questions and a prepared quiz each, and a keyword-only stand-in for the model. Nothing is sent
  * anywhere, so the tour needs no Groq key.
  */
 object Demo {
@@ -48,7 +48,10 @@ object Demo {
             val md = context.assets.open("demo/$name.md").bufferedReader().readText()
             val pack = LessonPack.fromJson(context.assets.open("demo/$name.pack.json").bufferedReader().readText())
             val r = c.lessons.import(md, pack)
-            if (r is ImportResult.Ok && name == FILES.first()) c.lessons.setReady(r.lessonId, true)
+            if (r is ImportResult.Ok) {
+                if (name == FILES.first()) c.lessons.setReady(r.lessonId, true)
+                c.quizzes.importPrepared(r.lessonId, context.assets.open("demo/$name.quiz.json").bufferedReader().readText())
+            }
         }
     }
 }
@@ -77,7 +80,7 @@ object DemoSessionAi : SessionAi {
         val values = listOf("answer", "child", "ideas", "idea", "purpose", "question", "results", "score", "text", "tiebreak", "title", "total", "transcript")
             .associateWith { "x" }
         P.system()
-        listOf(P.ENRICH_IDEAS, P.ASSESS_RECALL, P.ASSESS_ANSWER, P.SUMMARIZE_SESSION).forEach { P.render(it, values) }
+        listOf(P.ENRICH_IDEAS, P.ASSESS_RECALL, P.ASSESS_ANSWER, P.SUMMARIZE_SESSION, P.MAKE_QUIZ).forEach { P.render(it, values) }
     }
 
     override suspend fun assessRecall(pack: LessonPack, transcript: String): AiReply<RecallReply> {

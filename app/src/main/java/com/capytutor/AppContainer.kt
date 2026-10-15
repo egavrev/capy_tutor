@@ -4,6 +4,7 @@ import android.content.Context
 import com.capytutor.ai.LessonEnricher
 import com.capytutor.ai.ModelSessionAi
 import com.capytutor.ai.ProviderRouter
+import com.capytutor.ai.QuizMaker
 import com.capytutor.ai.VoiceTranscriber
 import com.capytutor.ai.groq.GroqWhisperStt
 import com.capytutor.ai.groq.Groq
@@ -12,6 +13,8 @@ import com.capytutor.core.safety.SafetyFilter
 import com.capytutor.core.session.SessionAi
 import com.capytutor.data.db.CapyDatabase
 import com.capytutor.data.repo.LessonRepository
+import com.capytutor.data.repo.QuizRepository
+import com.capytutor.data.repo.RewardRepository
 import com.capytutor.data.repo.SessionRepository
 import com.capytutor.data.repo.UsageStore
 import com.capytutor.data.settings.SettingsStore
@@ -43,9 +46,11 @@ class AppContainer(private val context: Context) {
 
     val lessons = LessonRepository(db, context.filesDir, LessonEnricher(router), hasGroqKey = { settings.groqKey.isNotBlank() })
     val sessions = SessionRepository(db)
+    val quizzes = QuizRepository(db, QuizMaker(router), hasGroqKey = { settings.groqKey.isNotBlank() })
+    val rewards = RewardRepository(db)
 
-    /** Prepares questions for many lessons within Groq's free limits (parent mode). */
-    val questionQueue = com.capytutor.ui.parent.QuestionQueue(lessons, scope)
+    /** Prepares questions, then quizzes, for many lessons within Groq's free limits (parent mode). */
+    val questionQueue = com.capytutor.ui.parent.QuestionQueue(lessons, quizzes, scope)
 
     /** Debug builds only: the CI screenshot tour runs without Groq (see demo/Demo.kt). */
     @Volatile

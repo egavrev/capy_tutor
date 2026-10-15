@@ -12,6 +12,7 @@ object Prompts {
     const val ASSESS_RECALL = "assess_recall"
     const val ASSESS_ANSWER = "assess_answer"
     const val SUMMARIZE_SESSION = "summarize_session"
+    const val MAKE_QUIZ = "make_quiz"
 
     // Every brace escaped: Android's regex engine (ICU) rejects a bare "}", the desktop JVM does not.
     private val placeholder = Regex("\\{\\{\\s*([a-zA-Z0-9_]+)\\s*\\}\\}")

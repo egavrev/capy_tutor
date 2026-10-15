@@ -1,0 +1,20 @@
+{"questions": [
+  {"type": "choice", "ideas": ["i1"], "question": "A câta planetă de la Soare este Pământul?",
+   "options": ["A doua", "A treia", "A patra"], "answer": "A treia",
+   "explanation": "Pământul este a treia planetă de la Soare."},
+  {"type": "truefalse", "ideas": ["i4"], "statement": "Rotația Pământului în jurul axei durează 24 de ore.", "answer": true,
+   "explanation": "Da, o rotație durează 24 de ore și face ziua și noaptea."},
+  {"type": "match", "ideas": ["i3", "i4", "i5"], "question": "Potrivește fiecare cuvânt cu ce înseamnă.",
+   "pairs": [{"left": "Ecuator", "right": "împarte Pământul în două emisfere"},
+             {"left": "rotație", "right": "mișcarea în jurul axei"},
+             {"left": "revoluție", "right": "mișcarea în jurul Soarelui"}],
+   "explanation": "Ecuatorul împarte Pământul, rotația e în jurul axei, revoluția e în jurul Soarelui."},
+  {"type": "truefalse", "ideas": ["i7"], "statement": "Apa acoperă aproape jumătate din suprafața Pământului.", "answer": false,
+   "explanation": "Apa acoperă aproximativ 71% din suprafața Pământului, adică mai mult de două treimi."},
+  {"type": "choice", "ideas": ["i8"], "question": "Care este satelitul natural al Pământului?",
+   "options": ["Soarele", "Luna", "Marte"], "answer": "Luna",
+   "explanation": "Luna este singurul satelit natural al Pământului."},
+  {"type": "order", "ideas": ["i4", "i5"], "question": "Pune-le în ordine, de la cel mai scurt la cel mai lung.",
+   "items": ["o rotație (o zi)", "un anotimp", "o revoluție (un an)"],
+   "explanation": "O zi e mai scurtă decât un anotimp, iar un an are patru anotimpuri."}
+]}
