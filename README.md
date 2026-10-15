@@ -2,7 +2,7 @@
 
 A calm Android study buddy: Vali retells a lesson by voice, Capy finds what she missed, helps her remember it, and asks one question per key idea. Kotlin, Jetpack Compose, Groq's free AI. UI name: *Capy Tutore*.
 
-**Status:** M3 (screens, storage, parent mode) done: a whole session works by typing and survives the app being killed. M4 (voice) is built and passes the emulator tour; it is done once a full session by voice works on Vali's phone. Next: M5 (hardening, release signing, install guide). See `HANDOFF.md` §12 for the milestones.
+**Status:** M3 (screens, storage, parent mode) done: a whole session works by typing and survives the app being killed. M4 (voice) is built and passes the emulator tour; it is done once a full session by voice works on Vali's phone. Release 2: E11 (quiz) and E12 (Capy's corner) are built. M5 (hardening, release signing, Family Link guide) is partly done. See `HANDOFF.md` §12 for the milestones.
 
 ## Using the app
 
@@ -11,6 +11,8 @@ A calm Android study buddy: Vali retells a lesson by voice, Capy finds what she 
 3. **Review it:** open the lesson, check each idea (*Vezi și editează tot*), especially the test question, then *Lecția e gata*. Only ready lessons can be opened by the child.
 4. **The child:** opens the lesson, *Hai să începem*, taps the mic and retells (or *Scriu cu tastatura*). The transcript appears in the box, where she can fix it, then *Gata, am terminat*. Hints, the test and the summary follow.
 5. **Afterwards:** parent mode → the lesson → *Istoric*: results per idea, and any "Cred că am dreptate" to accept or reject.
+6. **Recapitulare (quiz):** the second tab. Every ready lesson with a quiz is listed; a quiz has 5–10 questions of four kinds (alege răspunsul, adevărat/fals, pune în ordine, potrivește perechile), answered by tapping and graded on the phone, with no timer and *Refac testul* at the end. Quizzes come from `<lesson>.quiz.json` files next to the lessons (see `docs/quiz-writing-prompt.md` and `tools/quiz-check.py`), or Capy makes one with Groq (*Pregătește quiz-urile* in parent mode). Parent mode → the lesson shows the quiz with its answers.
+7. **Colțul lui Capy:** the third tab. Each finished lesson earns 1–3 bows (fundițe): 1 for finishing, 2 from half the test right, 3 from 80 %. A lesson keeps its best result, so nothing is ever lost and there are no streaks. Things appear in Capy's corner as the bows add up (cushion at 3, cup 8, plant 15, lamp 25, shelf 40, window 60), and every finished lesson sits on the bow shelf.
 
 Voice: recordings go to Groq Whisper and are deleted as soon as the text comes back. When Groq is busy (limit reached) or there is no internet, Capy uses the phone's own speech recognition if it has Romanian, otherwise she asks for typing. Capy's voice (reading her messages aloud) is off by default: Setări → *Vocea lui Capy*. Parent mode → *Verificare telefon* shows what this phone can do (microphone, Groq, Romanian voice, Romanian recognition).
 
@@ -22,7 +24,7 @@ No Android Studio is needed. Every push to `main` is built by GitHub Actions (`.
 
 1. unit tests (`./gradlew test`),
 2. the debug APK, plus the signed release APK once the signing secrets exist (see below),
-3. a tour of every screen on an Android 13 emulator (the same Android version as Vali's Galaxy Note 20 Ultra), driven by `tools/screenshots.sh` with a demo child "Ana" and no Groq: setup, a whole session by voice and keyboard, killing the app mid-session, parent mode, dark mode and 130% font size. If a build fails, the compiler errors are on the [`ci-logs`](../../tree/ci-logs) branch.
+3. a tour of every screen on an Android 13 emulator (the same Android version as Vali's Galaxy Note 20 Ultra), driven by `tools/screenshots.sh` with a demo child "Ana" and no Groq: an upgrade from the previous database version, setup, a whole session by voice and keyboard, killing the app mid-session, a quiz of every type (killed in the middle too), Capy's corner, parent mode, dark mode and 130% font size. If a build fails, the compiler errors are on the [`ci-logs`](../../tree/ci-logs) branch.
 
 The latest APKs are on the [`builds`](../../tree/builds) branch:
 
@@ -100,7 +102,15 @@ Add them under GitHub → repo **Settings → Secrets and variables → Actions 
 
 ## Installing on Vali's phone
 
-Same steps as Capy Pomodoro (email or USB, then "Install anyway"; adb if Family Link blocks unknown apps). The full Family Link guide is added in M5.
+Family Link blocks installs from unknown sources, so it goes over USB with adb, as for Capy Pomodoro:
+
+1. In **Family Link**, open Vali's device settings and allow **Developer options**.
+2. On her phone: *Settings → About phone → Software information*, tap **Build number** 7 times; then *Settings → Developer options*, turn on **USB debugging**.
+3. Connect the phone to the Mac and run `bash tools/phone-install.sh`. Accept "Allow USB debugging?" on the phone (tick *Always allow*) and run it again if it stopped there. It installs the APK, copies the lessons zip to *Downloads* and opens the app.
+4. On the phone: first-run setup, the Groq key in parent mode, then *Adaugă lecții* → the zip → review and mark lessons ready. *Verificare telefon* checks the mic and the Romanian voice.
+5. Turn USB debugging off and block Developer options again in Family Link. Optionally give Capy Tutore **Unlimited time** (Family Link → Controls → App limits).
+
+Updates: run `tools/phone-install.sh` again; lessons and progress are kept (the database upgrades itself). Uninstalling removes everything: `adb -d uninstall com.capytutor`.
 
 ## Project layout
 
