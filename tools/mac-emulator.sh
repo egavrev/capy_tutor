@@ -60,9 +60,10 @@ if ! out=$("$ADB" install -r "$APK" 2>&1); then
 fi
 
 # Lessons in the emulator's Downloads, for "Adaugă lecții" in parent mode: every .md under
-# lessons/ (not the template), and any .zip of lessons (a Drive folder download) next to this repo.
+# lessons/ (not the template) with its prepared .questions.json, and any .zip of lessons
+# (for example capy-lectii-istorie.zip) next to this repo.
 "$ADB" shell mkdir -p /sdcard/Download/Capy >/dev/null
-find "$HERE/lessons" -name '*.md' ! -name 'TEMPLATE*' -print0 | while IFS= read -r -d '' f; do
+find "$HERE/lessons" \( -name '*.md' -o -name '*.questions.json' \) ! -name 'TEMPLATE*' -print0 | while IFS= read -r -d '' f; do
   "$ADB" push "$f" /sdcard/Download/Capy/ >/dev/null
 done
 for z in "$HERE"/*.zip; do [ -e "$z" ] && "$ADB" push "$z" /sdcard/Download/ >/dev/null; done
