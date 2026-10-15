@@ -29,6 +29,7 @@
     <color name="capy_line">#FFF1DCE3</color>  <!-- Dividers, borders -->
     <color name="capy_soft">#FFFCE7EE</color>  <!-- Selected tint, active nav pill -->
     <color name="capy_child_bubble">#FFF1E3EE</color>  <!-- Child chat bubble (Lilac pink) -->
+    <color name="capy_highlight">#FFF9D3E0</color>  <!-- Key sentences in reading mode (E14) -->
     <color name="capy_control_outline">#FFCDA7B6</color>  <!-- Radio rings, empty slots -->
     <color name="capy_subject_history">#FFB7814A</color>  <!-- Subject dot: History -->
     <color name="capy_subject_romanian">#FF8D7CC4</color>  <!-- Subject dot: Romanian -->

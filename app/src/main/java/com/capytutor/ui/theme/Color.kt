@@ -35,6 +35,7 @@ data class CapyColors(
     val line: Color,  // Dividers, borders
     val soft: Color,  // Selected tint, active nav pill
     val childBubble: Color,  // Child chat bubble (Lilac pink)
+    val highlight: Color,  // Key sentences in reading mode (E14)
     val controlOutline: Color,  // Radio rings, empty slots
     val subjectHistory: Color,  // Subject dot: History
     val subjectRomanian: Color,  // Subject dot: Romanian
@@ -74,6 +75,7 @@ val CapyLightColors = CapyColors(
     line = Color(0xFFF1DCE3),
     soft = Color(0xFFFCE7EE),
     childBubble = Color(0xFFF1E3EE),
+    highlight = Color(0xFFF9D3E0),
     controlOutline = Color(0xFFCDA7B6),
     subjectHistory = Color(0xFFB7814A),
     subjectRomanian = Color(0xFF8D7CC4),
@@ -113,6 +115,7 @@ val CapyDarkColors = CapyColors(
     line = Color(0xFF46323B),
     soft = Color(0xFF3D2531),
     childBubble = Color(0xFF3E2A3F),
+    highlight = Color(0xFF5A2E43),
     controlOutline = Color(0xFF7A5F69),
     subjectHistory = Color(0xFFD9A57A),
     subjectRomanian = Color(0xFFB4A6E0),

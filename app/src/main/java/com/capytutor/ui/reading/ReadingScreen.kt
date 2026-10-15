@@ -201,7 +201,7 @@ private fun Block(block: ReadingBlock, reading: Boolean, onRead: (() -> Unit)?) 
                     block.sentences.forEachIndexed { i, s ->
                         if (i > 0) append(" ")
                         if (s.isKey) {
-                            withStyle(SpanStyle(background = col.soft, fontWeight = FontWeight.SemiBold)) { append(s.text) }
+                            withStyle(SpanStyle(background = col.highlight, fontWeight = FontWeight.SemiBold)) { append(s.text) }
                         } else {
                             append(s.text)
                         }

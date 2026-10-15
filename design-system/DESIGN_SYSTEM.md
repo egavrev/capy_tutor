@@ -77,6 +77,7 @@ The theme files ship with the placeholder package `md.capy.tutore` — update th
 | `line` | `capy_line` | `#F1DCE3` | `#46323B` | Dividers, borders |
 | `soft` | `capy_soft` | `#FCE7EE` | `#3D2531` | Selected tint, active nav pill |
 | `childBubble` | `capy_child_bubble` | `#F1E3EE` | `#3E2A3F` | Child chat bubble (Lilac pink) |
+| `highlight` | `capy_highlight` | `#F9D3E0` | `#5A2E43` | Key sentences in reading mode (E14), always with semi-bold text |
 | `controlOutline` | `capy_control_outline` | `#CDA7B6` | `#7A5F69` | Radio rings, empty slots |
 | `subjectHistory` | `capy_subject_history` | `#B7814A` | `#D9A57A` | Subject dot: History |
 | `subjectRomanian` | `capy_subject_romanian` | `#8D7CC4` | `#B4A6E0` | Subject dot: Romanian |
@@ -150,6 +151,7 @@ Build these as reusable composables in `ui/components/` and reuse them; do not r
 | Bottom navigation | 72 dp, `surface` + top `line`. 3 tabs: Acasă (`home`), Recapitulare (`review`), Colțul lui Capy (`corner`). Active: `soft` pill 60×32 + `primary` icon + bold label. Inactive: `textSecondary`. |
 | Banners | 16 dp radius. Offline: `soft` + `offline` icon. Error: `wrong` + `sprout` + "Reîncearcă". Info / reward: `rewardBanner` + bow. |
 | PIN pad (parents) | keys 56 dp `background`, pressed `soft`. Dots: empty ring `controlOutline`, filled `primary`. Wrong: `wrong` panel with `wrongAccent` dots, gentle text, no shake. |
+| Reading page (E14) | Paragraph = `surface` card, 1 dp `line`; key sentence = `highlight` background + semi-bold; paragraph read aloud = 2 dp `mic` border; 48 dp speaker button per paragraph. |
 | Progress (4 steps) | Lecție · Povestește · Întrebări · Test; 6 dp bars, done `primary`, todo `line`, current step label bold. |
 
 ### Minimal usage
