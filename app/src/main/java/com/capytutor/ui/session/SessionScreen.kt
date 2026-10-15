@@ -57,6 +57,7 @@ import com.capytutor.ui.components.CapyBanner
 import com.capytutor.ui.components.CapyBubble
 import com.capytutor.ui.components.CapyCard
 import com.capytutor.ui.components.CapyPrimaryButton
+import com.capytutor.ui.components.CapySecondaryButton
 import com.capytutor.ui.components.CapyTextButton
 import com.capytutor.ui.components.ChildBubble
 import com.capytutor.ui.components.ChildBubbleState
@@ -69,7 +70,7 @@ import com.capytutor.ui.theme.CapyDimens
 import com.capytutor.ui.theme.CapyTheme
 
 @Composable
-fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit) {
+fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit, onRead: () -> Unit = {}) {
     val ui by vm.ui.collectAsStateWithLifecycle()
     val s = ui.state
     val pack = ui.pack
@@ -113,7 +114,7 @@ fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit) {
                     Phase.SUMMARY, Phase.DONE -> Summary(pack, s, ui.bows, Modifier.weight(1f))
                     else -> Chat(pack, s, ui, voice, Modifier.weight(1f))
                 }
-                BottomArea(vm, ui, s, mic, onClose)
+                BottomArea(vm, ui, s, mic, onClose, onRead)
             }
         }
     }
@@ -327,7 +328,7 @@ private fun MicExplanation(mic: MicPermission, onKeyboard: () -> Unit) {
 }
 
 @Composable
-private fun BottomArea(vm: SessionViewModel, ui: SessionUi, s: SessionState, mic: MicPermission, onClose: () -> Unit) {
+private fun BottomArea(vm: SessionViewModel, ui: SessionUi, s: SessionState, mic: MicPermission, onClose: () -> Unit, onRead: () -> Unit) {
     val pad = Modifier.fillMaxWidth().navigationBarsPadding().padding(CapyDimens.screenMargin)
     if (s.paused != null) {
         Column(pad) {
@@ -348,7 +349,11 @@ private fun BottomArea(vm: SessionViewModel, ui: SessionUi, s: SessionState, mic
     }
     val busy = ui.mic != MicState.IDLE
     when (s.phase) {
-        Phase.INTRO -> Column(pad) { CapyPrimaryButton("Hai să începem") { vm.send(Input.Continue) } }
+        // E14: read the lesson first, or go straight to retelling.
+        Phase.INTRO -> Column(pad, verticalArrangement = Arrangement.spacedBy(CapyDimens.itemGap)) {
+            CapySecondaryButton("Citesc lecția întâi", onClick = onRead)
+            CapyPrimaryButton("Hai să începem") { vm.send(Input.Continue) }
+        }
         Phase.RETELLING -> Column(pad, verticalArrangement = Arrangement.spacedBy(CapyDimens.itemGap), horizontalAlignment = Alignment.CenterHorizontally) {
             VoiceNote(ui, mic)
             if (!ui.keyboard && ui.draft.isBlank()) {

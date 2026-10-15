@@ -31,6 +31,8 @@ import com.capytutor.ui.parent.PinGateScreen
 import com.capytutor.ui.parent.UsageScreen
 import com.capytutor.ui.quiz.QuizScreen
 import com.capytutor.ui.quiz.QuizViewModel
+import com.capytutor.ui.reading.ReadingScreen
+import com.capytutor.ui.reading.ReadingViewModel
 import com.capytutor.ui.recap.RecapScreen
 import com.capytutor.ui.recap.RecapViewModel
 import com.capytutor.ui.session.SessionScreen
@@ -52,12 +54,19 @@ object Routes {
     const val RECAP = "recapitulare"
     const val CORNER = "coltul-lui-capy"
     const val QUIZ = "quiz/{id}"
+    /** E14: reading before retelling (ends in the session) or again later (just back). */
+    const val READ = "citeste/{id}"
+    const val REREAD = "reciteste/{id}"
 
     fun lesson(id: Long) = "lectie/$id"
     fun review(id: Long) = "parinte/lectie/$id"
     fun history(id: Long) = "parinte/istoric/$id"
     fun quiz(id: Long) = "quiz/$id"
+    fun read(id: Long) = "citeste/$id"
+    fun reread(id: Long) = "reciteste/$id"
 }
+
+private const val READ_DONE = "citit"
 
 private val idArg = listOf(navArgument("id") { type = NavType.LongType })
 
@@ -98,11 +107,36 @@ fun CapyNavHost(shared: String?, onSharedConsumed: () -> Unit) {
         }
         composable(Routes.QUIZ, idArg) { e ->
             val id = e.arguments!!.getLong("id")
-            QuizScreen(vm = viewModel { QuizViewModel(c, id) }, onClose = { nav.back() })
+            QuizScreen(vm = viewModel { QuizViewModel(c, id) }, onClose = { nav.back() }, onRead = { nav.navigate(Routes.reread(id)) })
         }
         composable(Routes.LESSON, idArg) { e ->
             val id = e.arguments!!.getLong("id")
-            SessionScreen(vm = viewModel { SessionViewModel(c, id) }, onClose = { nav.back() })
+            val vm = viewModel { SessionViewModel(c, id) }
+            // "Am citit, hai să povestesc" comes back here and starts the retelling.
+            val read by e.savedStateHandle.getStateFlow(READ_DONE, false).collectAsStateWithLifecycle()
+            LaunchedEffect(read) {
+                if (read) {
+                    e.savedStateHandle[READ_DONE] = false
+                    vm.startAfterReading()
+                }
+            }
+            SessionScreen(vm = vm, onClose = { nav.back() }, onRead = { nav.navigate(Routes.read(id)) })
+        }
+        composable(Routes.READ, idArg) { e ->
+            val id = e.arguments!!.getLong("id")
+            ReadingScreen(
+                c,
+                vm = viewModel { ReadingViewModel(c, id) },
+                onBack = { nav.back() },
+                onDone = {
+                    nav.previousBackStackEntry?.savedStateHandle?.set(READ_DONE, true)
+                    nav.back()
+                },
+            )
+        }
+        composable(Routes.REREAD, idArg) { e ->
+            val id = e.arguments!!.getLong("id")
+            ReadingScreen(c, vm = viewModel { ReadingViewModel(c, id) }, onBack = { nav.back() }, onDone = null)
         }
         composable(Routes.PIN) {
             PinGateScreen(c, onBack = { nav.back() }, onOpen = { nav.navigate(Routes.PARENT) { popUpTo(Routes.PIN) { inclusive = true } } })

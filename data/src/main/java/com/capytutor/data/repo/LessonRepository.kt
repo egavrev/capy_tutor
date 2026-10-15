@@ -61,6 +61,12 @@ class LessonRepository(
     fun observeIdeas(lessonId: Long): Flow<List<KeyIdeaEntity>> = lessons.observeIdeas(lessonId)
     suspend fun lesson(id: Long): LessonEntity? = lessons.get(id)
 
+    /** The lesson file as the parent imported it, parsed (reading mode shows its text). */
+    suspend fun parsed(id: Long): Lesson? {
+        val entity = lessons.get(id) ?: return null
+        return runCatching { (LessonParser.parse(File(entity.mdPath).readText()) as? ParseResult.Ok)?.lesson }.getOrNull()
+    }
+
     /**
      * [prepared]: hints and questions generated earlier (the debug demo uses the test bench's
      * packs), so no model call is made.

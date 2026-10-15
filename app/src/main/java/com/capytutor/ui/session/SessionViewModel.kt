@@ -211,6 +211,11 @@ class SessionViewModel(private val c: AppContainer, private val lessonId: Long) 
         c.stopVoice()
     }
 
+    /** "Am citit, hai să povestesc" in reading mode: on to retelling, only from the lesson intro. */
+    fun startAfterReading() {
+        if (_ui.value.state?.phase == Phase.INTRO) send(Input.Continue)
+    }
+
     fun send(input: Input) {
         viewModelScope.launch { apply(input) }
     }

@@ -134,7 +134,11 @@ start 1
 shot 08_home_lessons
 tap "Apariția omului*"
 shot 09_lesson_ready
-tap "Hai să începem"
+tap "Citesc lecția întâi"
+shot 09b_reading
+adb shell input swipe 540 1700 540 600 300; sleep 1
+shot 09c_reading_more 1
+tap "Am citit, hai să povestesc"
 shot 10_retelling_mic
 tap "Vorbește"
 shot 11_mic_explain 1
@@ -286,6 +290,9 @@ start 1
 shot 36_home_dark
 tap "Apariția omului*"
 shot 37_lesson_ready_dark
+tap "Citesc lecția întâi"
+shot 37b_reading_dark
+adb shell input keyevent 4; sleep 1.5
 tap "Hai să începem"
 tap "Scriu cu tastatura"
 tap "Scrie ce ții minte…" && type_text "Oamenii traiau in pesteri si faceau focul."

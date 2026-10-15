@@ -69,7 +69,7 @@ private fun QuizType.icon() = when (this) {
 
 /** E11 · Quiz: one question at a time, answered by tapping; "Verifică", then gentle feedback. No timer. */
 @Composable
-fun QuizScreen(vm: QuizViewModel, onClose: () -> Unit) {
+fun QuizScreen(vm: QuizViewModel, onClose: () -> Unit, onRead: () -> Unit = {}) {
     val ui by vm.ui.collectAsStateWithLifecycle()
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
         CapyTopBar(ui.title.ifBlank { "Quiz" }, onBack = onClose, modifier = Modifier.padding(horizontal = CapyDimens.screenMargin))
@@ -81,7 +81,7 @@ fun QuizScreen(vm: QuizViewModel, onClose: () -> Unit) {
                 CapyBanner("Quiz-ul acestei lecții nu e pregătit încă. Un părinte îl poate pregăti.", BannerKind.NOT_YET)
                 CapyPrimaryButton("Înapoi", onClick = onClose)
             }
-            s.done -> Results(ui, s, onAgain = vm::again, onDone = onClose)
+            s.done -> Results(ui, s, onAgain = vm::again, onDone = onClose, onRead = onRead)
             else -> {
                 val q = ui.question!!
                 Column(
@@ -241,7 +241,7 @@ private fun Hint(text: String) {
 }
 
 @Composable
-private fun ColumnScope.Results(ui: QuizUi, s: QuizState, onAgain: () -> Unit, onDone: () -> Unit) {
+private fun ColumnScope.Results(ui: QuizUi, s: QuizState, onAgain: () -> Unit, onDone: () -> Unit, onRead: () -> Unit) {
     val c = CapyTheme.colors
     val quiz = ui.quiz ?: return
     val happy = QuizGrader.isHappy(s.correct, s.total)
@@ -275,5 +275,6 @@ private fun ColumnScope.Results(ui: QuizUi, s: QuizState, onAgain: () -> Unit, o
     ) {
         CapySecondaryButton("Refac testul", onClick = onAgain)
         CapyPrimaryButton("Gata", onClick = onDone)
+        com.capytutor.ui.components.CapyTextButton("Mai citesc lecția o dată", modifier = Modifier.align(Alignment.CenterHorizontally), onClick = onRead)
     }
 }
