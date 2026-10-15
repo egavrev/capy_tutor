@@ -117,21 +117,27 @@ class ParentHomeViewModel(private val c: AppContainer) : ViewModel() {
         if (status.value.busy || uris.isEmpty()) return
         viewModelScope.launch {
             status.value = ImportStatus(busy = true, message = "Citesc fișierele…")
-            val files = withContext(Dispatchers.IO) { uris.flatMap { readLessons(context, it) } }
+            val all = withContext(Dispatchers.IO) { uris.flatMap { readLessons(context, it) } }
+            // "x.questions.json" next to "x.md": questions prepared in advance, no Groq needed.
+            val questions = all.filter { it.first.endsWith(QUESTIONS_SUFFIX, ignoreCase = true) }
+                .associate { it.first.dropLast(QUESTIONS_SUFFIX.length).lowercase() to it.second }
+            val files = all.filterNot { it.first.endsWith(QUESTIONS_SUFFIX, ignoreCase = true) }
             when {
                 files.isEmpty() -> status.value = ImportStatus(message = "Nu am găsit lecții .md în fișierele alese.")
-                files.size == 1 && files[0].second != null -> {
+                files.size == 1 && files[0].second != null && questions.isEmpty() -> {
                     status.value = ImportStatus()
                     importText(files[0].second!!)
                 }
-                else -> importMany(files)
+                else -> importMany(files, questions)
             }
         }
     }
 
     /** Many lessons: saved at once without Groq; questions are prepared afterwards, paced. */
-    private suspend fun importMany(files: List<Pair<String, String?>>) {
+    private suspend fun importMany(files: List<Pair<String, String?>>, questions: Map<String, String?> = emptyMap()) {
         var added = 0
+        var withQuestions = 0
+        var completed = 0
         val problems = mutableListOf<String>()
         for ((i, f) in files.withIndex()) {
             val (name, text) = f
@@ -140,16 +146,27 @@ class ParentHomeViewModel(private val c: AppContainer) : ViewModel() {
                 problems += "$name: nu am putut citi fișierul"
                 continue
             }
-            when (val r = withContext(Dispatchers.IO) { c.lessons.import(text, enrich = false) }) {
-                is ImportResult.Ok -> added++
+            val prepared = questions[name.removeSuffix(".md").lowercase()]
+            val r = withContext(Dispatchers.IO) {
+                if (prepared != null) c.lessons.importWithQuestions(text, prepared) else c.lessons.import(text, enrich = false)
+            }
+            when (r) {
+                is ImportResult.Ok -> if (r.questionsAdded) completed++ else {
+                    added++
+                    if (prepared != null && r.enrichError == null) withQuestions++
+                    r.enrichError?.let { problems += "$name: $it" }
+                }
                 is ImportResult.Rejected -> if (!r.message.contains("există deja")) problems += "$name: ${r.message}"
             }
         }
-        val skipped = files.size - added - problems.size
+        val skipped = files.size - added - completed - problems.count { !it.contains("Întrebările pregătite") }
         val parts = buildList {
-            add("Am adăugat ${RomanianText.count(added, "lecție", "lecții")}.")
+            if (added > 0 || completed == 0) add("Am adăugat ${RomanianText.count(added, "lecție", "lecții")}.")
+            if (completed > 0) add("Am pus întrebările pregătite la ${RomanianText.count(completed, "lecție", "lecții")} care erau deja în aplicație.")
+            if (withQuestions > 0) add("${RomanianText.count(withQuestions, "lecție are", "lecții au")} deja întrebările pregătite.")
+            if (withQuestions + completed > 0) add("Verifică lecțiile cu întrebări pregătite și marchează-le gata.")
             if (skipped > 0) add("${RomanianText.count(skipped, "lecție era", "lecții erau")} deja în aplicație.")
-            if (added > 0) add("Apasă „Pregătește întrebările” ca Capy să le pregătească, câte una.")
+            if (added > withQuestions) add("Pentru celelalte, apasă „Pregătește întrebările”.")
             if (problems.isNotEmpty()) add("Nu am putut adăuga:\n" + problems.joinToString("\n") { "• $it" })
         }
         status.value = ImportStatus(message = parts.joinToString(" "), ok = problems.isEmpty())
@@ -163,6 +180,7 @@ class ParentHomeViewModel(private val c: AppContainer) : ViewModel() {
         private const val MAX_BYTES = 200_000
 
         private const val MAX_FILES = 300
+        const val QUESTIONS_SUFFIX = ".questions.json"
 
         /** (file name, text or null when unreadable) for one picked file; a .zip gives every .md inside. */
         fun readLessons(context: Context, uri: Uri): List<Pair<String, String?>> {
@@ -177,7 +195,8 @@ class ParentHomeViewModel(private val c: AppContainer) : ViewModel() {
                         while (out.size < MAX_FILES) {
                             val e = zip.nextEntry ?: break
                             val entry = e.name.substringAfterLast('/')
-                            if (e.isDirectory || !entry.endsWith(".md", ignoreCase = true) || entry.startsWith(".") || e.name.contains("__MACOSX")) continue
+                            val wanted = entry.endsWith(".md", ignoreCase = true) || entry.endsWith(QUESTIONS_SUFFIX, ignoreCase = true)
+                            if (e.isDirectory || !wanted || entry.startsWith(".") || entry.startsWith("TEMPLATE") || e.name.contains("__MACOSX")) continue
                             val bytes = zip.readNBytesCompat(MAX_BYTES + 1)
                             out += entry to (if (bytes.size > MAX_BYTES) null else bytes.toString(Charsets.UTF_8))
                         }
@@ -249,7 +268,7 @@ fun ParentHomeScreen(
         ) {
             item {
                 CapyPrimaryButton("Adaugă lecții (.md sau .zip)", loading = status.busy) {
-                    picker.launch(arrayOf("text/*", "application/zip", "application/x-zip-compressed", "application/octet-stream"))
+                    picker.launch(arrayOf("text/*", "application/json", "application/zip", "application/x-zip-compressed", "application/octet-stream"))
                 }
             }
             status.message?.let { m ->

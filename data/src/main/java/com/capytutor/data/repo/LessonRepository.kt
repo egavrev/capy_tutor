@@ -8,6 +8,8 @@ import com.capytutor.core.lesson.ParseResult
 import com.capytutor.core.lesson.Subject
 import com.capytutor.core.pack.LessonPack
 import com.capytutor.core.pack.PackIdea
+import com.capytutor.core.schema.Schemas
+import com.capytutor.core.schema.Validated
 import com.capytutor.data.db.CapyDatabase
 import com.capytutor.data.db.KeyIdeaEntity
 import com.capytutor.data.db.LessonEntity
@@ -31,8 +33,11 @@ sealed interface Prepare {
 }
 
 sealed interface ImportResult {
-    /** Imported; [enrichError] set when the questions could not be generated yet. */
-    data class Ok(val lessonId: Long, val enrichError: String?) : ImportResult
+    /**
+     * Imported; [enrichError] set when the questions could not be generated yet. [questionsAdded]:
+     * the lesson was already in the app without questions, and only its prepared questions were added.
+     */
+    data class Ok(val lessonId: Long, val enrichError: String?, val questionsAdded: Boolean = false) : ImportResult
 
     /** Plain Romanian, shown to the parent as is. */
     data class Rejected(val message: String) : ImportResult
@@ -100,6 +105,34 @@ class LessonRepository(
         }
         if (!enrich) return ImportResult.Ok(id, null)
         return ImportResult.Ok(id, enrich(id, lesson))
+    }
+
+    /**
+     * A lesson with its hints and questions prepared in advance (a `<lesson>.questions.json` next
+     * to the `.md`, in the same format Groq returns). Checked with the same rules as a Groq reply;
+     * when it does not match the lesson, the lesson is still saved and the problem reported.
+     */
+    suspend fun importWithQuestions(markdown: String, questionsJson: String): ImportResult {
+        val lesson = (LessonParser.parse(markdown) as? ParseResult.Ok)?.lesson ?: return import(markdown, enrich = false)
+        val ids = lesson.ideas.indices.map { lesson.ideaId(it) }
+        return when (val v = Schemas.parseEnrich(questionsJson, ids)) {
+            is Validated.Ok -> {
+                val pack = LessonPack.build(lesson, v.value)
+                val existing = lessons.byHash(lesson.sha256)
+                if (existing != null && !existing.enriched) {
+                    // Imported earlier without questions (and so never shown to the child): add them now.
+                    lessons.replaceIdeas(existing.id, pack.ideas.map { it.toEntity(existing.id) })
+                    lessons.update(existing.copy(enriched = true))
+                    ImportResult.Ok(existing.id, null, questionsAdded = true)
+                } else {
+                    import(markdown, pack)
+                }
+            }
+            is Validated.Invalid -> when (val r = import(markdown, enrich = false)) {
+                is ImportResult.Ok -> r.copy(enrichError = "Întrebările pregătite nu se potrivesc cu lecția (${v.reason.take(120)}).")
+                is ImportResult.Rejected -> r
+            }
+        }
     }
 
     /** Lessons whose hints and questions are not generated yet, oldest first. */
