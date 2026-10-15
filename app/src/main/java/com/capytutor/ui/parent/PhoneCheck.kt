@@ -1,10 +1,7 @@
 package com.capytutor.ui.parent
 
-import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.speech.RecognitionSupport
-import android.speech.RecognitionSupportCallback
 import android.speech.SpeechRecognizer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,18 +29,13 @@ import com.capytutor.ui.components.CapySecondaryButton
 import com.capytutor.ui.components.CapyTextButton
 import com.capytutor.ui.theme.CapyDimens
 import com.capytutor.ui.theme.CapyTheme
-import com.capytutor.voice.AndroidSpeechStt
+import com.capytutor.voice.AndroidSpeechStt.OnDevice
 import com.capytutor.voice.AndroidTts
 import com.capytutor.voice.hasMicPermission
 import com.capytutor.voice.openAppSettings
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.coroutines.resume
 
 private enum class Ok { YES, NO, WAIT }
 
-/** Romanian on-device recognition: installed, can be downloaded, not offered, or unknown (Android < 13). */
-private enum class OnDevice { INSTALLED, DOWNLOADABLE, MISSING, UNKNOWN, CHECKING }
 
 @Composable
 private fun CheckRow(title: String, detail: String, ok: Ok, action: (@Composable () -> Unit)? = null) {
@@ -85,15 +77,15 @@ fun PhoneCheckScreen(c: AppContainer, onBack: () -> Unit) {
     val ctx = LocalContext.current
     var round by remember { mutableIntStateOf(0) }
     var groq by remember { mutableStateOf<GroqCheck.Result?>(null) }
-    var onDevice by remember { mutableStateOf(OnDevice.CHECKING) }
+    var onDevice by remember { mutableStateOf<OnDevice?>(null) }
     val ttsStatus by c.tts.status.collectAsStateWithLifecycle()
     val mic = ctx.hasMicPermission()
 
     LaunchedEffect(round) {
         groq = null
-        onDevice = OnDevice.CHECKING
+        onDevice = null
         groq = GroqCheck.run(c.transport, c.settings.groqKey)
-        onDevice = romanianOnDevice(ctx)
+        onDevice = c.deviceStt.romanianOnDevice(refresh = true)
     }
 
     ParentPage("Verificare telefon", onBack) {
@@ -150,19 +142,21 @@ fun PhoneCheckScreen(c: AppContainer, onBack: () -> Unit) {
                 else -> Unit
             }
         }
+        // The phone's recogniser is only the backup: Groq does the listening (decision 4).
+        val online = c.deviceStt.isAvailable()
         CheckRow(
-            "Recunoaștere vocală în română pe telefon",
-            when (onDevice) {
-                OnDevice.CHECKING -> "Se verifică…"
-                OnDevice.INSTALLED -> "Instalată. Când Groq nu poate asculta, Capy folosește telefonul, fără internet."
-                OnDevice.DOWNLOADABLE -> "Se poate descărca. Fără ea, când Groq nu poate asculta, copilul scrie răspunsul."
-                OnDevice.MISSING -> "Nu e disponibilă. Când Groq nu poate asculta, copilul scrie răspunsul."
-                OnDevice.UNKNOWN -> if (c.deviceStt.isAvailable()) "Telefonul are recunoaștere vocală (poate avea nevoie de internet)." else "Telefonul nu are recunoaștere vocală."
+            "Rezervă: recunoașterea vocală a telefonului",
+            when {
+                onDevice == null -> "Se verifică…"
+                onDevice == OnDevice.INSTALLED -> "Româna e instalată pe telefon. Când Groq nu poate asculta, Capy ascultă cu telefonul, chiar și fără internet."
+                online && onDevice == OnDevice.DOWNLOADABLE -> "Merge cu internet: când Groq e ocupat, Capy ascultă cu telefonul. Descarcă româna ca să meargă și fără internet."
+                online -> "Merge cu internet: când Groq e ocupat, Capy ascultă cu telefonul. Fără internet, copilul scrie răspunsul."
+                onDevice == OnDevice.DOWNLOADABLE -> "Se poate descărca. Fără ea, când Groq nu poate asculta, copilul scrie răspunsul."
+                else -> "Telefonul nu are recunoaștere vocală. Când Groq nu poate asculta, copilul scrie răspunsul."
             },
-            when (onDevice) {
-                OnDevice.CHECKING -> Ok.WAIT
-                OnDevice.INSTALLED -> Ok.YES
-                OnDevice.UNKNOWN -> if (c.deviceStt.isAvailable()) Ok.YES else Ok.NO
+            when {
+                onDevice == null -> Ok.WAIT
+                onDevice == OnDevice.INSTALLED || online -> Ok.YES
                 else -> Ok.NO
             },
         ) {
@@ -174,41 +168,4 @@ fun PhoneCheckScreen(c: AppContainer, onBack: () -> Unit) {
         }
         CapySecondaryButton("Verifică din nou") { round++ }
     }
-}
-
-private suspend fun romanianOnDevice(ctx: Context): OnDevice {
-    if (Build.VERSION.SDK_INT < 33) return OnDevice.UNKNOWN
-    if (!SpeechRecognizer.isOnDeviceRecognitionAvailable(ctx)) return OnDevice.MISSING
-    return withTimeoutOrNull(5_000) {
-        suspendCancellableCoroutine { cont ->
-            val r = SpeechRecognizer.createOnDeviceSpeechRecognizer(ctx)
-            fun done(v: OnDevice) {
-                r.destroy()
-                if (cont.isActive) cont.resume(v)
-            }
-            try {
-                r.checkRecognitionSupport(
-                    AndroidSpeechStt(ctx).intent(),
-                    ctx.mainExecutor,
-                    object : RecognitionSupportCallback {
-                        override fun onSupportResult(s: RecognitionSupport) {
-                            val ro = { l: List<String> -> l.any { it.startsWith("ro") } }
-                            done(
-                                when {
-                                    ro(s.installedOnDeviceLanguages) -> OnDevice.INSTALLED
-                                    ro(s.supportedOnDeviceLanguages) || ro(s.pendingOnDeviceLanguages) -> OnDevice.DOWNLOADABLE
-                                    else -> OnDevice.MISSING
-                                },
-                            )
-                        }
-
-                        override fun onError(error: Int) = done(OnDevice.MISSING)
-                    },
-                )
-            } catch (e: Exception) {
-                done(OnDevice.UNKNOWN)
-            }
-            cont.invokeOnCancellation { r.destroy() }
-        }
-    } ?: OnDevice.UNKNOWN
 }
