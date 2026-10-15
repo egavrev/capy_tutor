@@ -83,6 +83,7 @@ class SessionRepository(private val db: CapyDatabase, private val clock: () -> L
     }
 
     /** The parent accepts or rejects an answer the child disputed ("Cred că am dreptate"). */
-    suspend fun decide(sessionId: Long, ideaKey: String, accept: Boolean) =
+    suspend fun decide(sessionId: Long, ideaKey: String, accept: Boolean) {
         sessions.decide(sessionId, ideaKey, if (accept) "accepted" else "rejected")
+    }
 }

@@ -67,9 +67,13 @@ class SettingsStore(context: Context, scope: CoroutineScope, private val box: Se
         groqKey = store.data.first()[GROQ_KEY]?.let(box::decrypt).orEmpty()
     }
 
-    suspend fun setChildName(name: String) = store.edit { it[CHILD_NAME] = box.encrypt(name.trim()) }
+    suspend fun setChildName(name: String) {
+        store.edit { it[CHILD_NAME] = box.encrypt(name.trim()) }
+    }
 
-    suspend fun setGender(g: ChildGender) = store.edit { it[GENDER] = g.name }
+    suspend fun setGender(g: ChildGender) {
+        store.edit { it[GENDER] = g.name }
+    }
 
     suspend fun setGroqKey(key: String) {
         val k = key.trim()
@@ -77,7 +81,9 @@ class SettingsStore(context: Context, scope: CoroutineScope, private val box: Se
         groqKey = k
     }
 
-    suspend fun setVoiceOn(on: Boolean) = store.edit { it[VOICE_ON] = on }
+    suspend fun setVoiceOn(on: Boolean) {
+        store.edit { it[VOICE_ON] = on }
+    }
 
     suspend fun setPin(pin: String) {
         val salt = PinHash.newSalt()
@@ -93,7 +99,9 @@ class SettingsStore(context: Context, scope: CoroutineScope, private val box: Se
         return p[PIN_HASH] == PinHash.hash(pin, salt)
     }
 
-    suspend fun finishSetup() = store.edit { it[SETUP_DONE] = true }
+    suspend fun finishSetup() {
+        store.edit { it[SETUP_DONE] = true }
+    }
 
     private companion object {
         val SETUP_DONE = booleanPreferencesKey("setup_done")
