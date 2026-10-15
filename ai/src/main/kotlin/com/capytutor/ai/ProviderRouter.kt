@@ -17,6 +17,8 @@ data class UsageRecord(
     val outputTokens: Int,
     val rateLimited: Boolean,
     val outcome: String,
+    /** Speech-to-text only: length of the recording sent. */
+    val audioSeconds: Int = 0,
 )
 
 fun interface UsageSink {

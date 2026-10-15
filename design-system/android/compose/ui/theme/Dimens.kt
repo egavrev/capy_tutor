@@ -41,6 +41,14 @@ object CapyDimens {
     val lessonRowHeight = 60.dp
     /** Capy's face next to a bubble. */
     val capyBubbleAvatar = 40.dp
+    /** Mic icon inside the 96 dp mic button. */
+    val micIcon = 40.dp
+    /** Mic pulse, inner ring diameter. */
+    val micRingInner = 116.dp
+    /** Mic pulse, outer ring diameter. */
+    val micRingOuter = 136.dp
+    /** Mic button border when paused / busy. */
+    val micBorder = 3.dp
     /** Bubbles use at most this share of the screen width. */
     const val bubbleMaxWidth = 0.85f
 }

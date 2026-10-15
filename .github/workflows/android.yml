@@ -155,7 +155,7 @@ jobs:
           arch: x86_64
           profile: pixel_6
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -no-boot-anim -camera-back none
           script: adb install -r app.apk && OUT=shots bash tools/screenshots.sh
 
       - name: Publish screenshots to the screenshots branch

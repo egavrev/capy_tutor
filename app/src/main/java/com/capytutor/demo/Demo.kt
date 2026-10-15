@@ -53,6 +53,17 @@ object Demo {
     }
 }
 
+/** Stands in for Whisper in the tour: the emulator has no voice, so it "hears" a fixed sentence. */
+object DemoSpeechToText : com.capytutor.ai.SpeechToText {
+    override val id: String = "demo/stt"
+    const val HEARD = "Primii oameni au trăit în Africa, iar Lucy a fost găsită în Etiopia."
+
+    override suspend fun transcribe(audio: java.io.File, languageTag: String): com.capytutor.ai.SttResult {
+        delay(600)
+        return com.capytutor.ai.SttResult.Ok(HEARD)
+    }
+}
+
 /** Judges by keywords only, after a short pause so "Capy se gândește" can be seen. */
 object DemoSessionAi : SessionAi {
     private const val THINK_MS = 600L

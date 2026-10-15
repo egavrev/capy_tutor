@@ -146,6 +146,7 @@ fun ParentHomeScreen(
     onLesson: (Long) -> Unit,
     onSettings: () -> Unit,
     onUsage: () -> Unit,
+    onPhoneCheck: () -> Unit,
 ) {
     val lessons by vm.lessons.collectAsStateWithLifecycle()
     val status by vm.status.collectAsStateWithLifecycle()
@@ -200,7 +201,10 @@ fun ParentHomeScreen(
                 CapyListRow("Setări", caption = "Nume, PIN, cheia Groq, vocea lui Capy", leading = { RowIcon(R.drawable.ic_capy_sliders) }, onClick = onSettings)
             }
             item {
-                CapyListRow("Folosire azi", caption = "Cereri și tokeni Groq", leading = { RowIcon(R.drawable.ic_capy_chart) }, onClick = onUsage)
+                CapyListRow("Folosire azi", caption = "Cereri, tokeni și secunde audio Groq", leading = { RowIcon(R.drawable.ic_capy_chart) }, onClick = onUsage)
+            }
+            item {
+                CapyListRow("Verificare telefon", caption = "Microfon, Groq, vocea română", leading = { RowIcon(R.drawable.ic_capy_mic) }, onClick = onPhoneCheck)
             }
         }
     }

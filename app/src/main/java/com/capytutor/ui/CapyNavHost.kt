@@ -23,6 +23,7 @@ import com.capytutor.ui.parent.LessonReviewViewModel
 import com.capytutor.ui.parent.ParentHomeScreen
 import com.capytutor.ui.parent.ParentHomeViewModel
 import com.capytutor.ui.parent.ParentSettingsScreen
+import com.capytutor.ui.parent.PhoneCheckScreen
 import com.capytutor.ui.parent.PinGateScreen
 import com.capytutor.ui.parent.UsageScreen
 import com.capytutor.ui.session.SessionScreen
@@ -40,6 +41,7 @@ object Routes {
     const val SETTINGS = "parinte/setari"
     const val NEW_PIN = "parinte/pin-nou"
     const val USAGE = "parinte/folosire"
+    const val PHONE = "parinte/verificare"
 
     fun lesson(id: Long) = "lectie/$id"
     fun review(id: Long) = "parinte/lectie/$id"
@@ -92,6 +94,7 @@ fun CapyNavHost(shared: String?, onSharedConsumed: () -> Unit) {
                 onLesson = { nav.navigate(Routes.review(it)) },
                 onSettings = { nav.navigate(Routes.SETTINGS) },
                 onUsage = { nav.navigate(Routes.USAGE) },
+                onPhoneCheck = { nav.navigate(Routes.PHONE) },
             )
         }
         composable(Routes.REVIEW, idArg) { e ->
@@ -105,6 +108,7 @@ fun CapyNavHost(shared: String?, onSharedConsumed: () -> Unit) {
         composable(Routes.SETTINGS) { ParentSettingsScreen(c, onBack = { nav.back() }, onChangePin = { nav.navigate(Routes.NEW_PIN) }) }
         composable(Routes.NEW_PIN) { ChangePinScreen(c, onBack = { nav.back() }) }
         composable(Routes.USAGE) { UsageScreen(c, onBack = { nav.back() }) }
+        composable(Routes.PHONE) { PhoneCheckScreen(c, onBack = { nav.back() }) }
     }
 }
 

@@ -2,7 +2,9 @@ package com.capytutor.ui.parent
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Switch
+import androidx.compose.ui.semantics.Role
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -70,14 +72,23 @@ fun ParentSettingsScreen(c: AppContainer, onBack: () -> Unit, onChangePin: () ->
             }
         }
         CapyCard {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.toggleable(value = s.voiceOn, role = Role.Switch) { on -> scope.launch { c.settings.setVoiceOn(on) } },
+            ) {
                 Column(Modifier.weight(1f)) {
                     Text("Vocea lui Capy", style = CapyTheme.type.label, color = col.text)
-                    Text("Capy citește cu voce tare ce spune. Vine cu vocea, în pasul următor.", style = CapyTheme.type.caption, color = col.textSecondary)
+                    Text("Lângă fiecare mesaj al lui Capy apare un difuzor: copilul îl apasă și Capy citește cu voce tare.", style = CapyTheme.type.caption, color = col.textSecondary)
+                    if (s.voiceOn) {
+                        val tts by c.tts.status.collectAsStateWithLifecycle()
+                        if (tts == com.capytutor.voice.AndroidTts.Status.NO_ROMANIAN || tts == com.capytutor.voice.AndroidTts.Status.NO_ENGINE) {
+                            Text("Telefonul nu are vocea română, așa că difuzorul nu apare. Vezi „Verificare telefon”.", style = CapyTheme.type.caption, color = col.onWrong)
+                        }
+                    }
                 }
                 Switch(
                     checked = s.voiceOn,
-                    onCheckedChange = { on -> scope.launch { c.settings.setVoiceOn(on) } },
+                    onCheckedChange = null,
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = col.onPrimary, checkedTrackColor = col.primary,
                         uncheckedThumbColor = col.controlOutline, uncheckedTrackColor = col.surface, uncheckedBorderColor = col.controlOutline,

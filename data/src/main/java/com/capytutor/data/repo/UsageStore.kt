@@ -19,7 +19,7 @@ class UsageStore(private val db: CapyDatabase, private val scope: CoroutineScope
                 ProviderUsageEntity(
                     date = r.date.toString(), provider = r.provider, model = r.model, callType = r.callType,
                     requests = r.requests, inputTokens = r.inputTokens, outputTokens = r.outputTokens,
-                    audioSeconds = 0, rateLimitedCount = if (r.rateLimited) 1 else 0, outcome = r.outcome,
+                    audioSeconds = r.audioSeconds, rateLimitedCount = if (r.rateLimited) 1 else 0, outcome = r.outcome,
                 ),
             )
         }

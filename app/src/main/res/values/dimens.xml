@@ -40,4 +40,8 @@
     <dimen name="capy_pin_dot">16dp</dimen>
     <dimen name="capy_lesson_row_height">60dp</dimen>
     <dimen name="capy_bubble_avatar">40dp</dimen>
+    <dimen name="capy_mic_icon">40dp</dimen>
+    <dimen name="capy_mic_ring_inner">116dp</dimen>
+    <dimen name="capy_mic_ring_outer">136dp</dimen>
+    <dimen name="capy_mic_border">3dp</dimen>
 </resources>

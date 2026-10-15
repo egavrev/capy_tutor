@@ -113,74 +113,91 @@ shot 06_setup_key 1
 tap "Mai târziu"
 shot 07_home_empty
 
-# ---- 2. Lessons arrive (demo seed: one ready, one to check) ---------------------------------
+# ---- 2. Lessons arrive (demo seed: one ready, one to check); retelling by voice, then typing ----
 start 1
 shot 08_home_lessons
 tap "Apariția omului*"
 shot 09_lesson_ready
 tap "Hai să începem"
-shot 10_retelling
-tap "Scrie ce ții minte…" && type_text "Primii oameni au trait in Africa. Lucy a fost gasita in Etiopia. Oamenii faceau unelte din piatra."
+shot 10_retelling_mic
+tap "Vorbește"
+shot 11_mic_explain 1
+tap "Permite microfonul"
+shot 12_mic_permission_dialog 2
+tap "While using the app" || tap "Allow" || tap "Only this time"
+sleep 2
+shot 13_recording 0
+sleep 2
+tap "Oprește, am terminat" 3
+shot 14_transcribed 1
+tap "Trimite"
+tap "Scrie ce ții minte…" && type_text "Oamenii faceau unelte din piatra."
 tap "Trimite"
 hide_keyboard
-shot 11_retelling_typed 1
+shot 15_retelling_sent 1
 tap "Gata, am terminat" 3
-shot 12_coverage 1
+shot 16_coverage 1
 tap "Hai să le căutăm împreună"
-shot 13_hint_broad
-tap "Scrie aici…" && type_text "nu stiu exact"
+shot 17_hint_broad
+tap "Scrie sau apasă microfonul" && type_text "nu stiu exact"
 tap "Trimite" 3
 hide_keyboard
-shot 14_hint_clue 1
+shot 18_hint_clue 1
 
 # ---- 3. Kill the app mid-session, reopen: same place -----------------------------------------
 log "force-stop in the middle of the hint ladder"
 start 1
-shot 15_home_resume
+shot 19_home_resume
 tap "Apariția omului*"
-shot 16_resumed
+shot 20_resumed
 
 # ---- 4. Through the remaining hints with "Nu-mi amintesc", then the test ---------------------
 for i in $(seq 1 30); do
   has "Nu-mi amintesc" || break
   tap "Nu-mi amintesc" 1.2
 done
-shot 17_test_question 1
-tap "Scrie aici…" && type_text "in Africa"
+shot 21_test_question 1
+tap "Scrie sau apasă microfonul" && type_text "in Africa"
 tap "Trimite" 3
-shot 18_feedback_right 1
+shot 22_feedback_right 1
 tap "Mai departe"
-tap "Scrie aici…" && type_text "din lemn"
+tap "Scrie sau apasă microfonul" && type_text "din lemn"
 tap "Trimite" 3
-shot 19_feedback_not_yet 1
+shot 23_feedback_not_yet 1
 tap "Mai departe"
 for i in $(seq 1 20); do
   if has "Nu știu"; then tap "Nu știu" 1.2; fi
   if has "Mai departe"; then tap "Mai departe" 1.2; else break; fi
 done
 sleep 3
-shot 20_summary
+shot 24_summary
 tap "Gata pe azi"
-shot 21_done 1
+shot 25_done 1
 tap "Înapoi acasă"
 
 # ---- 5. Parent mode ----------------------------------------------------------------------------
 tap "Mod părinte"
-shot 22_pin_gate 1
+shot 26_pin_gate 1
 tap "9" 0.4; tap "9" 0.4; tap "9" 0.4; tap "9" 1.5
-shot 23_pin_wrong 1
+shot 27_pin_wrong 1
 pin
-shot 24_parent_home
+shot 28_parent_home
 tap "Pământul*"
-shot 25_review
+shot 29_review
 tap "Vezi și editează tot"
-shot 26_review_edit 1
+shot 30_review_edit 1
 adb shell input keyevent 4; sleep 1.5
 tap "Setări"
-shot 27_settings
+tap "Vocea lui Capy"
+shot 31_settings_voice_on
 adb shell input keyevent 4; sleep 1.5
 tap "Folosire azi"
-shot 28_usage
+shot 32_usage
+adb shell input keyevent 4; sleep 1.5
+tap "Verificare telefon" 8
+shot 33_phone_check 0
+adb shell input swipe 540 1900 540 600 300; sleep 1
+shot 34_phone_check_more 1
 adb shell input keyevent 4; sleep 1.5
 tap "Apariția omului*"
 adb shell input swipe 540 1900 540 400 300; sleep 1
@@ -188,15 +205,16 @@ adb shell input swipe 540 1900 540 400 300; sleep 1
 adb shell input swipe 540 1900 540 400 300; sleep 1
 adb shell input swipe 540 1900 540 400 300; sleep 1
 tap "Istoric"
-shot 29_history
+shot 35_history
 
 # ---- 6. Dark mode and 130% font ----------------------------------------------------------------
 adb shell cmd uimode night yes
 start 1
-shot 30_home_dark
+shot 36_home_dark
 tap "Apariția omului*"
-shot 31_lesson_ready_dark
+shot 37_lesson_ready_dark
 tap "Hai să începem"
+tap "Scriu cu tastatura"
 tap "Scrie ce ții minte…" && type_text "Oamenii traiau in pesteri si faceau focul."
 tap "Trimite"
 # Kill the app while Capy is thinking: on reopen the same check runs again.
@@ -204,19 +222,19 @@ tap "Gata, am terminat" 0.1
 log "force-stop while Capy is thinking"
 start 1
 tap "Apariția omului*" 3
-shot 32_coverage_dark_after_kill 1
+shot 38_coverage_dark_after_kill 1
 tap "Hai să le căutăm împreună"
-tap "Scrie aici…" && type_text "in Asia"
+tap "Scrie sau apasă microfonul" && type_text "in Asia"
 tap "Trimite" 3
 hide_keyboard
-shot 33_hint_dark 1
+shot 39_hint_dark_speaker 1
 adb shell cmd uimode night no
 
 adb shell settings put system font_scale 1.3
 start 1
-shot 34_home_font130
+shot 40_home_font130
 tap "Apariția omului*"
-shot 35_session_font130
+shot 41_session_font130
 adb shell settings put system font_scale 1.0
 
 adb logcat -d > "$OUT/logcat.txt"

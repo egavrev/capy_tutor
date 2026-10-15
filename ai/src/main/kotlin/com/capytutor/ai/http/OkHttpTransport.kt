@@ -44,6 +44,11 @@ class OkHttpTransport(private val client: OkHttpClient = OkHttpClient()) : HttpT
         return execute(request, timeoutMs)
     }
 
+    override suspend fun get(url: String, headers: Map<String, String>, timeoutMs: Long): HttpResponse {
+        val request = Request.Builder().url(url).apply { headers.forEach { (k, v) -> header(k, v) } }.get().build()
+        return execute(request, timeoutMs)
+    }
+
     private suspend fun execute(request: Request, timeoutMs: Long): HttpResponse = withContext(Dispatchers.IO) {
         // One budget for the whole call. OkHttp's default 10 s read timeout would otherwise cut off
         // a model that thinks for longer than 10 s before sending the first byte.

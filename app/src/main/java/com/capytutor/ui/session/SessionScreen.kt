@@ -31,6 +31,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import com.capytutor.container
+import com.capytutor.ui.components.MicButton
+import com.capytutor.ui.components.MicLook
+import com.capytutor.voice.AndroidTts
+import com.capytutor.voice.MicPermission
+import com.capytutor.voice.rememberMicPermission
 import com.capytutor.R
 import com.capytutor.core.pack.LessonPack
 import com.capytutor.core.schema.CoverageStatus
@@ -64,6 +73,18 @@ fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit) {
     val ui by vm.ui.collectAsStateWithLifecycle()
     val s = ui.state
     val pack = ui.pack
+    val c = LocalContext.current.container
+    val settings by c.settings.settings.collectAsStateWithLifecycle()
+    // Capy's voice is off by default (decision 7); when on, each bubble gets a speaker button.
+    val voice = if (settings.voiceOn) {
+        val status by c.tts.status.collectAsStateWithLifecycle()
+        val speaking by c.tts.speaking.collectAsStateWithLifecycle()
+        Voice(status == AndroidTts.Status.READY, speaking, vm::speak)
+    } else {
+        Voice(false, null, vm::speak)
+    }
+    val mic = rememberMicPermission(onGranted = vm::micTap)
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { vm.onBackground() }
     Column(Modifier.fillMaxSize().statusBarsPadding().imePadding()) {
         Row(
             Modifier.fillMaxWidth().height(CapyDimens.topBarHeight).padding(horizontal = CapyDimens.screenMargin),
@@ -90,9 +111,9 @@ fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit) {
                 when (s.phase) {
                     Phase.INTRO -> Intro(pack, Modifier.weight(1f))
                     Phase.SUMMARY, Phase.DONE -> Summary(pack, s, Modifier.weight(1f))
-                    else -> Chat(pack, s, ui.thinking, Modifier.weight(1f))
+                    else -> Chat(pack, s, ui, voice, Modifier.weight(1f))
                 }
-                BottomArea(vm, ui, s, onClose)
+                BottomArea(vm, ui, s, mic, onClose)
             }
         }
     }
@@ -142,12 +163,14 @@ private fun Intro(pack: LessonPack, modifier: Modifier) {
 }
 
 @Composable
-private fun Chat(pack: LessonPack, s: SessionState, thinking: Boolean, modifier: Modifier) {
+private fun Chat(pack: LessonPack, s: SessionState, ui: SessionUi, voice: Voice, modifier: Modifier) {
+    val thinking = ui.thinking
     val list = rememberLazyListState()
     val lastChild = s.turns.indexOfLast { it.speaker == Speaker.CHILD }
-    val extra = (if (s.phase == Phase.COVERAGE) 1 else 0) + (if (thinking || s.pending != null && s.paused == null) 1 else 0)
+    val listening = ui.mic != MicState.IDLE
+    val extra = (if (s.phase == Phase.COVERAGE) 1 else 0) + (if (thinking || s.pending != null && s.paused == null) 1 else 0) + (if (listening) 1 else 0)
     val count = s.turns.size + extra
-    LaunchedEffect(count, s.feedback) { if (count > 0) list.animateScrollToItem(count - 1) }
+    LaunchedEffect(count, s.feedback, ui.mic) { if (count > 0) list.animateScrollToItem(count - 1) }
     LazyColumn(
         state = list,
         modifier = modifier.fillMaxWidth(),
@@ -156,7 +179,7 @@ private fun Chat(pack: LessonPack, s: SessionState, thinking: Boolean, modifier:
     ) {
         itemsIndexed(s.turns) { i, t ->
             if (t.speaker == Speaker.CAPY) {
-                CapyBubble(t.text)
+                CapyBubble(t.text, speaking = voice.speaking == t.text, onSpeak = if (voice.available) ({ voice.speak(t.text) }) else null)
             } else {
                 val fb = s.feedback
                 val state = when {
@@ -182,7 +205,12 @@ private fun Chat(pack: LessonPack, s: SessionState, thinking: Boolean, modifier:
             }
         }
         if (thinking || (s.pending != null && s.paused == null)) {
-            item { CapyBubble("Capy se gândește…") }
+            item { CapyBubble("Capy se gândește…", avatar = R.drawable.capy_thinking) }
+        }
+        when (ui.mic) {
+            MicState.RECORDING, MicState.LISTENING_ON_PHONE -> item { CapyBubble("Te ascult…", avatar = R.drawable.capy_listening) }
+            MicState.TRANSCRIBING -> item { CapyBubble("Capy ascultă ce ai spus…", avatar = R.drawable.capy_thinking) }
+            MicState.IDLE -> Unit
         }
     }
 }
@@ -226,8 +254,57 @@ private fun OutcomeGroup(title: String, ideas: List<String>, state: ChipState) {
     }
 }
 
+/** Capy's voice for the bubbles. */
+private class Voice(val available: Boolean, val speaking: String?, val speak: (String) -> Unit)
+
+private fun micLook(ui: SessionUi, mic: MicPermission): MicLook = when {
+    ui.mic == MicState.RECORDING || ui.mic == MicState.LISTENING_ON_PHONE -> MicLook.RECORDING
+    ui.mic == MicState.TRANSCRIBING -> MicLook.BUSY
+    mic.refused && !mic.granted -> MicLook.NO_PERMISSION
+    else -> MicLook.IDLE
+}
+
+/** The answer box with the 48 dp mic in front. */
 @Composable
-private fun BottomArea(vm: SessionViewModel, ui: SessionUi, s: SessionState, onClose: () -> Unit) {
+private fun VoiceAnswer(vm: SessionViewModel, ui: SessionUi, mic: MicPermission, placeholder: String = "Scrie sau apasă microfonul") {
+    AnswerInput(
+        ui.draft,
+        vm::onDraft,
+        vm::sendDraft,
+        placeholder = placeholder,
+        enabled = ui.mic == MicState.IDLE,
+        leading = { MicButton(micLook(ui, mic), onClick = mic.tap, small = true) },
+    )
+}
+
+@Composable
+private fun VoiceNote(ui: SessionUi, mic: MicPermission) {
+    val c = CapyTheme.colors
+    val text = ui.voiceNote ?: if (mic.refused && !mic.granted) "Permite microfonul ca să vorbești cu Capy, sau scrie răspunsul." else null
+    if (text != null) {
+        Text(text, style = CapyTheme.type.caption, color = c.textSecondary, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
+    }
+}
+
+/** Shown before Android asks for the microphone. */
+@Composable
+private fun MicExplanation(mic: MicPermission, onKeyboard: () -> Unit) {
+    CapyCard {
+        Text(
+            "Ca să te audă, Capy are nevoie de microfon. Apasă „Permite microfonul”, apoi alege „Când se folosește aplicația”.",
+            style = CapyTheme.type.body,
+            color = CapyTheme.colors.text,
+        )
+        CapyPrimaryButton("Permite microfonul", onClick = mic.allow)
+        CapyTextButton("Scriu cu tastatura", modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            mic.dismiss()
+            onKeyboard()
+        }
+    }
+}
+
+@Composable
+private fun BottomArea(vm: SessionViewModel, ui: SessionUi, s: SessionState, mic: MicPermission, onClose: () -> Unit) {
     val pad = Modifier.fillMaxWidth().navigationBarsPadding().padding(CapyDimens.screenMargin)
     if (s.paused != null) {
         Column(pad) {
@@ -241,23 +318,45 @@ private fun BottomArea(vm: SessionViewModel, ui: SessionUi, s: SessionState, onC
         return
     }
     if (ui.thinking || s.pending != null) return
+    val answering = s.phase == Phase.RETELLING || s.phase == Phase.HINTS || (s.phase == Phase.TEST && s.feedback == null)
+    if (answering && mic.explaining) {
+        Column(pad) { MicExplanation(mic, onKeyboard = vm::showKeyboard) }
+        return
+    }
+    val busy = ui.mic != MicState.IDLE
     when (s.phase) {
         Phase.INTRO -> Column(pad) { CapyPrimaryButton("Hai să începem") { vm.send(Input.Continue) } }
-        Phase.RETELLING -> Column(pad, verticalArrangement = Arrangement.spacedBy(CapyDimens.itemGap)) {
-            AnswerInput(ui.draft, vm::onDraft, vm::sendDraft, placeholder = "Scrie ce ții minte…")
-            CapyPrimaryButton("Gata, am terminat", enabled = s.retelling.isNotBlank() || ui.draft.isNotBlank(), onClick = vm::finishRetelling)
-            if (s.retelling.isBlank()) {
-                CapyTextButton("Nu-mi amintesc nimic", modifier = Modifier.align(Alignment.CenterHorizontally)) { vm.send(Input.DontKnow) }
+        Phase.RETELLING -> Column(pad, verticalArrangement = Arrangement.spacedBy(CapyDimens.itemGap), horizontalAlignment = Alignment.CenterHorizontally) {
+            VoiceNote(ui, mic)
+            if (!ui.keyboard && ui.draft.isBlank()) {
+                MicButton(micLook(ui, mic), onClick = mic.tap)
+                Text(
+                    when (ui.mic) {
+                        MicState.IDLE -> if (mic.refused && !mic.granted) "Permite microfonul" else "Apasă și povestește"
+                        MicState.RECORDING, MicState.LISTENING_ON_PHONE -> "Te ascult… Apasă când ai terminat."
+                        MicState.TRANSCRIBING -> "Capy ascultă ce ai spus…"
+                    },
+                    style = CapyTheme.type.label,
+                    color = CapyTheme.colors.text,
+                )
+                if (!busy) CapyTextButton("Scriu cu tastatura", onClick = vm::showKeyboard)
+            } else {
+                VoiceAnswer(vm, ui, mic, placeholder = "Scrie ce ții minte…")
+            }
+            CapyPrimaryButton("Gata, am terminat", enabled = !busy && (s.retelling.isNotBlank() || ui.draft.isNotBlank()), onClick = vm::finishRetelling)
+            if (s.retelling.isBlank() && ui.draft.isBlank() && !busy) {
+                CapyTextButton("Nu-mi amintesc nimic") { vm.send(Input.DontKnow) }
             }
         }
         Phase.COVERAGE -> Column(pad) {
             CapyPrimaryButton(if (s.gaps.isEmpty()) "Hai la test" else "Hai să le căutăm împreună") { vm.send(Input.Continue) }
         }
         Phase.HINTS -> Column(pad, verticalArrangement = Arrangement.spacedBy(CapyDimens.itemGap)) {
-            AnswerInput(ui.draft, vm::onDraft, vm::sendDraft)
+            VoiceNote(ui, mic)
+            VoiceAnswer(vm, ui, mic)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                CapyTextButton("Nu-mi amintesc") { vm.send(Input.DontKnow) }
-                if (s.disputable != null) CapyTextButton("Cred că am dreptate") { vm.send(Input.Dispute) }
+                CapyTextButton("Nu-mi amintesc", enabled = !busy) { vm.send(Input.DontKnow) }
+                if (s.disputable != null) CapyTextButton("Cred că am dreptate", enabled = !busy) { vm.send(Input.Dispute) }
             }
         }
         Phase.TEST -> {
@@ -275,8 +374,9 @@ private fun BottomArea(vm: SessionViewModel, ui: SessionUi, s: SessionState, onC
                 )
             } else {
                 Column(pad, verticalArrangement = Arrangement.spacedBy(CapyDimens.itemGap)) {
-                    AnswerInput(ui.draft, vm::onDraft, vm::sendDraft)
-                    CapyTextButton("Nu știu", modifier = Modifier.align(Alignment.CenterHorizontally)) { vm.send(Input.DontKnow) }
+                    VoiceNote(ui, mic)
+                    VoiceAnswer(vm, ui, mic)
+                    CapyTextButton("Nu știu", enabled = !busy, modifier = Modifier.align(Alignment.CenterHorizontally)) { vm.send(Input.DontKnow) }
                 }
             }
         }

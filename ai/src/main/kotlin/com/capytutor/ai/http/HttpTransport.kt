@@ -16,6 +16,10 @@ interface HttpTransport {
         fileMediaType: String,
         timeoutMs: Long,
     ): HttpResponse
+
+    /** Plain GET, used by the phone check (is Groq reachable, is the key good). */
+    suspend fun get(url: String, headers: Map<String, String>, timeoutMs: Long): HttpResponse =
+        throw UnsupportedOperationException("GET not supported by ${this::class.simpleName}")
 }
 
 /** [headers] keys are lower case; one value per header. */

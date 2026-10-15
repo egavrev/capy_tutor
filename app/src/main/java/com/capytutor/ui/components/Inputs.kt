@@ -92,7 +92,7 @@ fun CapyTextField(
     )
 }
 
-/** The child's answer box: type, then the round send button. The mic arrives with M4. */
+/** The child's answer box: optional mic, the text (typed or transcribed, always editable), the send button. */
 @Composable
 fun AnswerInput(
     value: String,
@@ -101,9 +101,11 @@ fun AnswerInput(
     modifier: Modifier = Modifier,
     placeholder: String = "Scrie aici…",
     enabled: Boolean = true,
+    leading: (@Composable () -> Unit)? = null,
 ) {
     val c = CapyTheme.colors
-    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(CapyDimens.itemGap)) {
+    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(CapyDimens.itemGap)) {
+        leading?.invoke()
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
