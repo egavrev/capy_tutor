@@ -116,6 +116,7 @@ fun CapyListRow(
     caption: String? = null,
     leading: @Composable (() -> Unit)? = null,
     trailingText: String? = null,
+    trailing: @Composable (() -> Unit)? = null,
     enabled: Boolean = true,
     onClick: (() -> Unit)? = null,
 ) {
@@ -144,6 +145,7 @@ fun CapyListRow(
                 if (caption != null) Text(caption, style = CapyTheme.type.caption, color = if (enabled) c.textSecondary else c.onInactive)
             }
             if (trailingText != null) Text(trailingText, style = CapyTheme.type.label, color = if (enabled) c.link else c.onInactive)
+            trailing?.invoke()
             if (onClick != null && enabled) {
                 Icon(painterResource(R.drawable.ic_capy_chevron), contentDescription = null, tint = c.textSecondary, modifier = Modifier.size(CapyDimens.icon))
             }

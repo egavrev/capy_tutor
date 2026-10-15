@@ -40,6 +40,8 @@ data class SessionUi(
     val voiceNote: String? = null,
     /** The child chose the keyboard on the retelling screen. */
     val keyboard: Boolean = false,
+    /** E12: the bows this finished session earned (shown on the summary). */
+    val bows: com.capytutor.data.db.BowAwardEntity? = null,
 )
 
 /**
@@ -246,10 +248,12 @@ class SessionViewModel(private val c: AppContainer, private val lessonId: Long) 
     private suspend fun commit(s: SessionState) {
         val pack = _ui.value.pack ?: return
         _ui.update { it.copy(state = s) }
-        withContext(Dispatchers.IO + NonCancellable) {
+        val award = withContext(Dispatchers.IO + NonCancellable) {
             val id = sessionId ?: c.sessions.create(lessonId, s).also { sessionId = it }
             c.sessions.save(id, pack, s)
+            if (s.phase == Phase.SUMMARY || s.phase == Phase.DONE) c.sessions.bowsFor(id) else null
         }
+        if (award != null && _ui.value.bows == null) _ui.update { it.copy(bows = award) }
     }
 
     val isDone: Boolean get() = _ui.value.state?.phase == Phase.DONE

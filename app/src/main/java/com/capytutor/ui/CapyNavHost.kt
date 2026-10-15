@@ -13,6 +13,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.capytutor.container
+import com.capytutor.ui.components.ChildTab
+import com.capytutor.ui.corner.CornerScreen
+import com.capytutor.ui.corner.CornerViewModel
 import com.capytutor.ui.home.HomeScreen
 import com.capytutor.ui.home.HomeViewModel
 import com.capytutor.ui.parent.ChangePinScreen
@@ -26,6 +29,10 @@ import com.capytutor.ui.parent.ParentSettingsScreen
 import com.capytutor.ui.parent.PhoneCheckScreen
 import com.capytutor.ui.parent.PinGateScreen
 import com.capytutor.ui.parent.UsageScreen
+import com.capytutor.ui.quiz.QuizScreen
+import com.capytutor.ui.quiz.QuizViewModel
+import com.capytutor.ui.recap.RecapScreen
+import com.capytutor.ui.recap.RecapViewModel
 import com.capytutor.ui.session.SessionScreen
 import com.capytutor.ui.session.SessionViewModel
 import com.capytutor.ui.setup.SetupScreen
@@ -42,10 +49,14 @@ object Routes {
     const val NEW_PIN = "parinte/pin-nou"
     const val USAGE = "parinte/folosire"
     const val PHONE = "parinte/verificare"
+    const val RECAP = "recapitulare"
+    const val CORNER = "coltul-lui-capy"
+    const val QUIZ = "quiz/{id}"
 
     fun lesson(id: Long) = "lectie/$id"
     fun review(id: Long) = "parinte/lectie/$id"
     fun history(id: Long) = "parinte/istoric/$id"
+    fun quiz(id: Long) = "quiz/$id"
 }
 
 private val idArg = listOf(navArgument("id") { type = NavType.LongType })
@@ -76,7 +87,18 @@ fun CapyNavHost(shared: String?, onSharedConsumed: () -> Unit) {
                 vm = viewModel { HomeViewModel(c) },
                 onOpenLesson = { nav.navigate(Routes.lesson(it)) },
                 onParentMode = { nav.navigate(Routes.PIN) },
+                onTab = nav::tab,
             )
+        }
+        composable(Routes.RECAP) {
+            RecapScreen(vm = viewModel { RecapViewModel(c) }, onQuiz = { nav.navigate(Routes.quiz(it)) }, onTab = nav::tab)
+        }
+        composable(Routes.CORNER) {
+            CornerScreen(vm = viewModel { CornerViewModel(c) }, onTab = nav::tab)
+        }
+        composable(Routes.QUIZ, idArg) { e ->
+            val id = e.arguments!!.getLong("id")
+            QuizScreen(vm = viewModel { QuizViewModel(c, id) }, onClose = { nav.back() })
         }
         composable(Routes.LESSON, idArg) { e ->
             val id = e.arguments!!.getLong("id")
@@ -109,6 +131,15 @@ fun CapyNavHost(shared: String?, onSharedConsumed: () -> Unit) {
         composable(Routes.NEW_PIN) { ChangePinScreen(c, onBack = { nav.back() }) }
         composable(Routes.USAGE) { UsageScreen(c, onBack = { nav.back() }) }
         composable(Routes.PHONE) { PhoneCheckScreen(c, onBack = { nav.back() }) }
+    }
+}
+
+/** The child's three tabs: Acasă stays at the bottom of the stack, the others replace each other on top. */
+private fun NavHostController.tab(tab: ChildTab) {
+    when (tab) {
+        ChildTab.HOME -> if (!popBackStack(Routes.HOME, inclusive = false)) navigate(Routes.HOME) { popUpTo(0) }
+        ChildTab.REVIEW -> navigate(Routes.RECAP) { popUpTo(Routes.HOME); launchSingleTop = true }
+        ChildTab.CORNER -> navigate(Routes.CORNER) { popUpTo(Routes.HOME); launchSingleTop = true }
     }
 }
 

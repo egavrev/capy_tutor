@@ -110,7 +110,7 @@ fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit) {
                 Spacer(Modifier.height(CapyDimens.itemGap))
                 when (s.phase) {
                     Phase.INTRO -> Intro(pack, Modifier.weight(1f))
-                    Phase.SUMMARY, Phase.DONE -> Summary(pack, s, Modifier.weight(1f))
+                    Phase.SUMMARY, Phase.DONE -> Summary(pack, s, ui.bows, Modifier.weight(1f))
                     else -> Chat(pack, s, ui, voice, Modifier.weight(1f))
                 }
                 BottomArea(vm, ui, s, mic, onClose)
@@ -216,7 +216,7 @@ private fun Chat(pack: LessonPack, s: SessionState, ui: SessionUi, voice: Voice,
 }
 
 @Composable
-private fun Summary(pack: LessonPack, s: SessionState, modifier: Modifier) {
+private fun Summary(pack: LessonPack, s: SessionState, bows: com.capytutor.data.db.BowAwardEntity?, modifier: Modifier) {
     val c = CapyTheme.colors
     val happy = s.mood == CapyMood.HAPPY
     val texts = pack.ideas.associate { it.id to it.text }
@@ -236,6 +236,7 @@ private fun Summary(pack: LessonPack, s: SessionState, modifier: Modifier) {
                 Text(s.childSummary, style = CapyTheme.type.body, color = c.text, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth())
             }
         }
+        if (bows != null) BowsEarned(bows)
         val alone = s.results.filter { it.outcome == Outcome.RECALLED_ALONE }
         val hint = s.results.filter { it.outcome == Outcome.RECALLED_WITH_HINT }
         val explained = s.results.filter { it.outcome == Outcome.EXPLAINED }
@@ -243,6 +244,28 @@ private fun Summary(pack: LessonPack, s: SessionState, modifier: Modifier) {
         if (hint.isNotEmpty()) OutcomeGroup("Ți-ai amintit cu un indiciu", hint.map { texts[it.ideaId].orEmpty() }, ChipState.KNOWN)
         if (explained.isNotEmpty()) OutcomeGroup("Le-am descoperit împreună", explained.map { texts[it.ideaId].orEmpty() }, ChipState.PRACTISE)
         Spacer(Modifier.height(CapyDimens.itemGap))
+    }
+}
+
+/** E12: a quiet reward line, never a loss: new bows, or the lesson keeping the ones it has. */
+@Composable
+private fun BowsEarned(award: com.capytutor.data.db.BowAwardEntity) {
+    val c = CapyTheme.colors
+    androidx.compose.material3.Surface(color = c.rewardBanner, contentColor = c.text, shape = com.capytutor.ui.theme.CapyShapes.card, modifier = Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(CapyDimens.screenMargin),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(CapyDimens.itemGap),
+        ) {
+            com.capytutor.ui.components.BowRow(award.bows, size = CapyDimens.icon + CapyDimens.itemGap)
+            Text(
+                if (award.added > 0) "Ai câștigat ${com.capytutor.ui.components.bowsText(award.added)} pentru Capy!"
+                else "Ai repetat lecția. Fundițele ei rămân pe raftul lui Capy.",
+                style = CapyTheme.type.body,
+                color = c.text,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 

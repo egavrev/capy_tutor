@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -30,7 +29,11 @@ import com.capytutor.AppContainer
 import com.capytutor.R
 import com.capytutor.core.lesson.Subject
 import com.capytutor.data.db.LessonEntity
+import com.capytutor.ui.components.BowCounter
+import com.capytutor.ui.components.BowRow
+import com.capytutor.ui.components.CapyBottomNav
 import com.capytutor.ui.components.CapyCard
+import com.capytutor.ui.components.ChildTab
 import com.capytutor.ui.components.CapyListRow
 import com.capytutor.ui.components.CapyTopBar
 import com.capytutor.ui.components.SectionTitle
@@ -43,19 +46,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
-data class HomeLesson(val lesson: LessonEntity, val inProgress: Boolean)
+data class HomeLesson(val lesson: LessonEntity, val inProgress: Boolean, val bows: Int = 0)
 
-data class HomeUi(val name: String = "", val groups: List<Pair<String, List<HomeLesson>>> = emptyList(), val loaded: Boolean = false)
+data class HomeUi(val name: String = "", val groups: List<Pair<String, List<HomeLesson>>> = emptyList(), val bows: Int = 0, val loaded: Boolean = false)
 
 class HomeViewModel(c: AppContainer) : ViewModel() {
-    val ui: StateFlow<HomeUi> = combine(c.lessons.observeLessons(), c.sessions.observeOpenLessonIds(), c.settings.settings) { lessons, open, settings ->
+    val ui: StateFlow<HomeUi> = combine(c.lessons.observeLessons(), c.sessions.observeOpenLessonIds(), c.settings.settings, c.rewards.observe()) { lessons, open, settings, rewards ->
         val openSet = open.toSet()
         HomeUi(
             name = settings.childName,
             // The child sees only the lessons a parent checked and marked ready.
             groups = com.capytutor.ui.parent.lessonsByChapter(lessons.filter { it.status == LessonEntity.READY }).map { (header, list) ->
-                header to list.map { HomeLesson(it, it.id in openSet) }
+                header to list.map { HomeLesson(it, it.id in openSet, rewards.bowsFor(it.id)) }
             },
+            bows = rewards.total,
             loaded = true,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUi())
@@ -70,17 +74,19 @@ fun subjectColor(c: CapyColors, label: String): Color = when (Subject.fromLabel(
     Subject.STIINTE, null -> c.controlOutline
 }
 
-/** Acasă: "Bună, Ana!", lessons grouped by subject, the lock for parent mode. */
+/** Acasă: "Bună, Ana!", lessons grouped by subject with their bows, the bow counter, the lock for parent mode. */
 @Composable
-fun HomeScreen(vm: HomeViewModel, onOpenLesson: (Long) -> Unit, onParentMode: () -> Unit) {
+fun HomeScreen(vm: HomeViewModel, onOpenLesson: (Long) -> Unit, onParentMode: () -> Unit, onTab: (ChildTab) -> Unit) {
     val ui by vm.ui.collectAsStateWithLifecycle()
     val c = CapyTheme.colors
-    Column(Modifier.fillMaxSize().statusBarsPadding()) {
+    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.weight(1f).statusBarsPadding()) {
         CapyTopBar(
             title = if (ui.name.isBlank()) stringResource(R.string.home_greeting) else "Bună, ${ui.name}!",
             showFace = true,
             modifier = Modifier.padding(horizontal = CapyDimens.screenMargin),
             trailing = {
+                BowCounter(ui.bows, onClick = { onTab(ChildTab.CORNER) })
                 IconButton(onClick = onParentMode, modifier = Modifier.size(CapyDimens.touchTarget)) {
                     Icon(
                         painter = painterResource(R.drawable.ic_capy_lock),
@@ -112,12 +118,14 @@ fun HomeScreen(vm: HomeViewModel, onOpenLesson: (Long) -> Unit, onParentMode: ()
                         },
                         enabled = ready,
                         leading = { SubjectDot(subjectColor(c, l.lesson.subject)) },
+                        trailing = if (l.bows > 0) ({ BowRow(l.bows) }) else null,
                         onClick = { onOpenLesson(l.lesson.id) },
                     )
                 }
             }
-            item { androidx.compose.foundation.layout.Spacer(Modifier.navigationBarsPadding()) }
         }
+    }
+    CapyBottomNav(ChildTab.HOME, onTab)
     }
 }
 
