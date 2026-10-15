@@ -20,6 +20,14 @@ android {
     // repository secrets on CI. Without it only debug builds are made (see the workflow).
     val releaseKeystore = System.getenv("CAPY_TUTOR_KEYSTORE_FILE")?.let { file(it) }?.takeIf { it.exists() }
     signingConfigs {
+        // Fixed debug key (committed, not secret): without it every CI runner makes a new one and
+        // each debug APK refuses to install over the previous one (INSTALL_FAILED_UPDATE_INCOMPATIBLE).
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
         if (releaseKeystore != null) {
             create("release") {
                 storeFile = releaseKeystore

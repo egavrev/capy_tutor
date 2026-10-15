@@ -47,7 +47,17 @@ step "Waiting for Android to finish starting"
 until [ "$("$ADB" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = "1" ]; do sleep 2; done
 
 step "Installing Capy Tutore"
-"$ADB" install -r "$APK"
+if ! out=$("$ADB" install -r "$APK" 2>&1); then
+  echo "$out"
+  if echo "$out" | grep -q "INSTALL_FAILED_UPDATE_INCOMPATIBLE"; then
+    # Signed with a different key (builds before the fixed debug key): only a fresh install works.
+    echo "The app on the emulator was signed with an older key. Removing it (its test data too) and installing again."
+    "$ADB" uninstall com.capytutor >/dev/null
+    "$ADB" install "$APK"
+  else
+    exit 1
+  fi
+fi
 
 # Lessons in the emulator's Downloads, for "Adaugă lecții" in parent mode: every .md under
 # lessons/ (not the template), and any .zip of lessons (a Drive folder download) next to this repo.

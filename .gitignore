@@ -2,6 +2,9 @@
 signing/
 *.jks
 *.keystore
+# The debug key is not a secret (password "android"); one fixed key lets each CI debug build
+# install over the last one. The release key stays in signing/ and in repository secrets.
+!app/debug.keystore
 secrets.properties
 .env
 local.properties
