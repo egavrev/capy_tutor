@@ -68,8 +68,21 @@ object DemoSpeechToText : com.capytutor.ai.SpeechToText {
 object DemoSessionAi : SessionAi {
     private const val THINK_MS = 600L
 
+    /**
+     * Renders every real prompt template, so the CI tour runs the prompt code on Android too
+     * (a regex that Android rejects once crashed every real Groq call while the tour stayed green).
+     */
+    private fun realPrompts() {
+        val P = com.capytutor.core.prompts.Prompts
+        val values = listOf("answer", "child", "ideas", "idea", "purpose", "question", "results", "score", "text", "tiebreak", "title", "total", "transcript")
+            .associateWith { "x" }
+        P.system()
+        listOf(P.ENRICH_IDEAS, P.ASSESS_RECALL, P.ASSESS_ANSWER, P.SUMMARIZE_SESSION).forEach { P.render(it, values) }
+    }
+
     override suspend fun assessRecall(pack: LessonPack, transcript: String): AiReply<RecallReply> {
         delay(THINK_MS)
+        realPrompts()
         val ideas = pack.ideas.map { i ->
             val n = KeywordMatcher.matchedGroups(transcript, i.keywords)
             val status = when {
@@ -84,6 +97,7 @@ object DemoSessionAi : SessionAi {
 
     override suspend fun assessAnswer(pack: LessonPack, idea: PackIdea, question: String, answer: String, purpose: Purpose): AiReply<AnswerReply> {
         delay(THINK_MS)
+        realPrompts()
         val ok = KeywordMatcher.matchedGroups(answer, idea.keywords) > 0 ||
             KeywordMatcher.isCandidateCovered(answer, listOf(idea.checkAnswer.split(' ', ',').filter { it.length > 3 }))
         return AiReply.Ok(

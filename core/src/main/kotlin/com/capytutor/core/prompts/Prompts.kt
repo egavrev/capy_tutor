@@ -13,7 +13,8 @@ object Prompts {
     const val ASSESS_ANSWER = "assess_answer"
     const val SUMMARIZE_SESSION = "summarize_session"
 
-    private val placeholder = Regex("\\{\\{\\s*([a-zA-Z0-9_]+)\\s*}}")
+    // Every brace escaped: Android's regex engine (ICU) rejects a bare "}", the desktop JVM does not.
+    private val placeholder = Regex("\\{\\{\\s*([a-zA-Z0-9_]+)\\s*\\}\\}")
 
     fun version(name: String): String = CoreConfig.get("prompt.$name") ?: "v1"
 

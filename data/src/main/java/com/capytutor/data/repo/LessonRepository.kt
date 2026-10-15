@@ -100,7 +100,17 @@ class LessonRepository(
 
     private suspend fun enrich(lessonId: Long, lesson: Lesson): String? {
         if (!hasGroqKey()) return "Adaugă cheia Groq în Setări, apoi apasă „Generează întrebările”."
-        return when (val r = enricher.enrich(lesson)) {
+        val result = try {
+            enricher.enrich(lesson)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: VirtualMachineError) {
+            throw e
+        } catch (e: Throwable) {
+            // Never crash parent mode: the lesson is saved, the parent can try again.
+            EnrichResult.Failed("Nu am putut pregăti întrebările (${e::class.simpleName}). Lecția e salvată; încearcă din nou.", retryable = true)
+        }
+        return when (val r = result) {
             is EnrichResult.Failed -> r.message
             is EnrichResult.Ok -> {
                 lessons.replaceIdeas(lessonId, r.pack.ideas.map { it.toEntity(lessonId) })

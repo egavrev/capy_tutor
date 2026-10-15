@@ -230,7 +230,12 @@ class SessionViewModel(private val c: AppContainer, private val lessonId: Long) 
             withContext(Dispatchers.IO) { step() }.state
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Exception) {
+        } catch (e: VirtualMachineError) {
+            throw e
+        } catch (e: Throwable) {
+            // A bug or an unexpected reply must never crash the session or lose it: Capy pauses,
+            // the request stays saved, and "Continuăm" tries again.
+            android.util.Log.w("Capy", "model step failed", e)
             val s = _ui.value.state!!
             runner!!.engine.onAiResult(s, AiOutcome.Unavailable(PauseReason.FAILED, null)).state
         }
