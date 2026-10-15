@@ -31,7 +31,24 @@ The latest APKs are on the [`builds`](../../tree/builds) branch:
 
 The screenshots are on the [`screenshots`](../../tree/screenshots) branch (`TOUR.txt` lists every step).
 
-**Trying it on the Mac's Android emulator (optional):** possible on an M1 MacBook without Android Studio, but it installs about 6–8 GB: `brew install --cask android-commandlinetools`, then `sdkmanager "platform-tools" "emulator" "system-images;android-33;google_apis_playstore;arm64-v8a"`, `avdmanager create avd -n capy -k "system-images;android-33;google_apis_playstore;arm64-v8a"`, `emulator -avd capy`, and `adb install capy-tutor-debug.apk`. For the microphone: the emulator's *Extended controls → Microphone → Virtual microphone uses host audio input* (off at every start). The real check for voice is Vali's phone.
+**Trying it on the Mac's Android emulator (optional, about 6–8 GB, no Android Studio):**
+```
+brew install --cask android-commandlinetools
+export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
+sdkmanager --licenses
+sdkmanager "cmdline-tools;latest" "platform-tools" "emulator" "system-images;android-33;google_apis_playstore;arm64-v8a"
+export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+avdmanager create avd -n capy -d pixel_6 -k "system-images;android-33;google_apis_playstore;arm64-v8a"
+emulator -avd capy &
+adb install -r capy-tutor-debug.apk
+```
+Use the `avdmanager` from `cmdline-tools/latest` (as above): Homebrew's own copy is too old for the Android 13 image and fails with "Could not load devices … devices.xml". Put the two `export` lines in `~/.zshrc`.
+
+- Demo without a Groq key (child "Ana", PIN 1234, the two sample lessons): `adb shell am start -n com.capytutor/.MainActivity --es capy_demo 1`
+- A lesson for a real import: `adb push lessons/istorie/SAMPLE-aparitia-omului.md /sdcard/Download/`
+- Microphone: the emulator's *⋯ → Microphone → Virtual microphone uses host audio input* (off again at every start).
+
+The real check for voice is Vali's phone.
 
 To build the app on the Mac anyway (optional): Java 17 (see the test bench section) plus the Android SDK command-line tools with `ANDROID_HOME` set, then `./gradlew test assembleDebug`.
 
