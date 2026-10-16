@@ -264,6 +264,7 @@ fun ParentHomeScreen(
     onSettings: () -> Unit,
     onUsage: () -> Unit,
     onPhoneCheck: () -> Unit,
+    onProgress: () -> Unit = {},
 ) {
     val lessons by vm.lessons.collectAsStateWithLifecycle()
     val status by vm.status.collectAsStateWithLifecycle()
@@ -322,6 +323,16 @@ fun ParentHomeScreen(
                             )
                         }
                     }
+                }
+            }
+            if (lessons.any { it.status == LessonEntity.READY }) {
+                item {
+                    CapyListRow(
+                        "Progres",
+                        caption = "Ce ține minte copilul, lecție cu lecție, și istoricul",
+                        leading = { RowIcon(R.drawable.ic_capy_review) },
+                        onClick = onProgress,
+                    )
                 }
             }
             if (lessons.isEmpty()) {

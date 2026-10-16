@@ -21,7 +21,11 @@ import com.capytutor.ui.home.HomeViewModel
 import com.capytutor.ui.parent.ChangePinScreen
 import com.capytutor.ui.parent.HistoryScreen
 import com.capytutor.ui.parent.HistoryViewModel
+import com.capytutor.ui.parent.LessonProgressScreen
+import com.capytutor.ui.parent.LessonProgressViewModel
 import com.capytutor.ui.parent.LessonReviewScreen
+import com.capytutor.ui.parent.ProgressScreen
+import com.capytutor.ui.parent.ProgressViewModel
 import com.capytutor.ui.parent.LessonReviewViewModel
 import com.capytutor.ui.parent.ParentHomeScreen
 import com.capytutor.ui.parent.ParentHomeViewModel
@@ -51,6 +55,8 @@ object Routes {
     const val NEW_PIN = "parinte/pin-nou"
     const val USAGE = "parinte/folosire"
     const val PHONE = "parinte/verificare"
+    const val PROGRESS = "parinte/progres"
+    const val LESSON_PROGRESS = "parinte/progres/{id}"
     const val RECAP = "recapitulare"
     const val CORNER = "coltul-lui-capy"
     const val QUIZ = "quiz/{id}"
@@ -61,6 +67,7 @@ object Routes {
     fun lesson(id: Long) = "lectie/$id"
     fun review(id: Long) = "parinte/lectie/$id"
     fun history(id: Long) = "parinte/istoric/$id"
+    fun lessonProgress(id: Long) = "parinte/progres/$id"
     fun quiz(id: Long) = "quiz/$id"
     fun read(id: Long) = "citeste/$id"
     fun reread(id: Long) = "reciteste/$id"
@@ -151,11 +158,29 @@ fun CapyNavHost(shared: String?, onSharedConsumed: () -> Unit) {
                 onSettings = { nav.navigate(Routes.SETTINGS) },
                 onUsage = { nav.navigate(Routes.USAGE) },
                 onPhoneCheck = { nav.navigate(Routes.PHONE) },
+                onProgress = { nav.navigate(Routes.PROGRESS) },
             )
+        }
+        composable(Routes.PROGRESS) {
+            ProgressScreen(
+                vm = viewModel { ProgressViewModel(c) },
+                childName = settings.childName,
+                onBack = { nav.back() },
+                onLesson = { nav.navigate(Routes.lessonProgress(it)) },
+            )
+        }
+        composable(Routes.LESSON_PROGRESS, idArg) { e ->
+            val id = e.arguments!!.getLong("id")
+            LessonProgressScreen(vm = viewModel { LessonProgressViewModel(c, id) }, onBack = { nav.back() }, onSessions = { nav.navigate(Routes.history(id)) })
         }
         composable(Routes.REVIEW, idArg) { e ->
             val id = e.arguments!!.getLong("id")
-            LessonReviewScreen(vm = viewModel { LessonReviewViewModel(c, id) }, onBack = { nav.back() }, onHistory = { nav.navigate(Routes.history(id)) })
+            LessonReviewScreen(
+                vm = viewModel { LessonReviewViewModel(c, id) },
+                onBack = { nav.back() },
+                onHistory = { nav.navigate(Routes.history(id)) },
+                onProgress = { nav.navigate(Routes.lessonProgress(id)) },
+            )
         }
         composable(Routes.HISTORY, idArg) { e ->
             val id = e.arguments!!.getLong("id")

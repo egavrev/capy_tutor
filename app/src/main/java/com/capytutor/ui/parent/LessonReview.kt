@@ -105,7 +105,7 @@ class LessonReviewViewModel(private val c: AppContainer, val lessonId: Long) : V
 
 /** Review and edit the key ideas and everything generated for them, then mark the lesson ready. */
 @Composable
-fun LessonReviewScreen(vm: LessonReviewViewModel, onBack: () -> Unit, onHistory: () -> Unit) {
+fun LessonReviewScreen(vm: LessonReviewViewModel, onBack: () -> Unit, onHistory: () -> Unit, onProgress: () -> Unit = {}) {
     val lesson by vm.lesson.collectAsStateWithLifecycle()
     val ideas by vm.ideas.collectAsStateWithLifecycle()
     val busy by vm.busy.collectAsStateWithLifecycle()
@@ -156,6 +156,7 @@ fun LessonReviewScreen(vm: LessonReviewViewModel, onBack: () -> Unit, onHistory:
             }
             items(ideas, key = { it.id }) { idea -> IdeaEditor(idea, enabled = !busy, onSave = vm::save) }
             item { QuizCard(quiz, enabled = !busy && l.enriched, onMake = vm::makeQuiz) }
+            item { CapyListRow("Progres", caption = "Ce ține minte copilul din această lecție, în timp", leading = { RowIcon(R.drawable.ic_capy_review) }, onClick = onProgress) }
             item { CapyListRow("Istoric", caption = "Sesiunile și răspunsurile copilului", leading = { RowIcon(R.drawable.ic_capy_history) }, onClick = onHistory) }
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {

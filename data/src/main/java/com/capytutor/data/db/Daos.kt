@@ -91,6 +91,13 @@ interface SessionDao {
     @Query("SELECT * FROM idea_result WHERE sessionId = :sessionId")
     suspend fun results(sessionId: Long): List<IdeaResultEntity>
 
+    /** Sessions that reached the summary (E15: progress). */
+    @Query("SELECT * FROM session WHERE phase IN ('SUMMARY', 'DONE') ORDER BY startedAt")
+    suspend fun finished(): List<SessionEntity>
+
+    @Query("SELECT * FROM idea_result WHERE sessionId IN (:sessionIds)")
+    suspend fun resultsFor(sessionIds: List<Long>): List<IdeaResultEntity>
+
     @Query("UPDATE idea_result SET parentDecision = :decision WHERE sessionId = :sessionId AND ideaKey = :ideaKey")
     suspend fun decide(sessionId: Long, ideaKey: String, decision: String)
 }
@@ -146,6 +153,9 @@ interface QuizDao {
 
     @Query("SELECT * FROM quiz_attempt WHERE lessonId = :lessonId AND finishedAt IS NOT NULL ORDER BY finishedAt DESC")
     fun observeFinishedFor(lessonId: Long): Flow<List<QuizAttemptEntity>>
+
+    @Query("SELECT * FROM quiz_attempt WHERE finishedAt IS NOT NULL ORDER BY finishedAt")
+    suspend fun finishedAttempts(): List<QuizAttemptEntity>
 
     @Query("SELECT * FROM quiz_attempt WHERE id = :id")
     suspend fun attempt(id: Long): QuizAttemptEntity?

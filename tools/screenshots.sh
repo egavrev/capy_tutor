@@ -253,6 +253,14 @@ tap "9" 0.4; tap "9" 0.4; tap "9" 0.4; tap "9" 1.5
 shot 27_pin_wrong 1
 pin
 shot 28_parent_home
+tap "Progres"
+shot 28b_progress
+tap "Apariția omului*"
+shot 28c_lesson_progress
+adb shell input swipe 540 1700 540 600 300; sleep 1
+shot 28d_lesson_progress_more 1
+adb shell input keyevent 4; sleep 1.5
+adb shell input keyevent 4; sleep 1.5
 tap "Pământul*"
 shot 29_review
 tap "Vezi și editează tot"

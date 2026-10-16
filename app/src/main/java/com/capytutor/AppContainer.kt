@@ -48,6 +48,7 @@ class AppContainer(private val context: Context) {
     val sessions = SessionRepository(db)
     val quizzes = QuizRepository(db, QuizMaker(router), hasGroqKey = { settings.groqKey.isNotBlank() })
     val rewards = RewardRepository(db)
+    val progress = com.capytutor.data.repo.ProgressRepository(db, quizzes)
 
     /** Prepares questions, then quizzes, for many lessons within Groq's free limits (parent mode). */
     val questionQueue = com.capytutor.ui.parent.QuestionQueue(lessons, quizzes, scope)
