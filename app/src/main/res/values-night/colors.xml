@@ -30,6 +30,7 @@
     <color name="capy_soft">#FF3D2531</color>  <!-- Selected tint, active nav pill -->
     <color name="capy_child_bubble">#FF3E2A3F</color>  <!-- Child chat bubble (Lilac pink) -->
     <color name="capy_highlight">#FF5A2E43</color>  <!-- Key sentences in reading mode (E14) -->
+    <color name="capy_sunny">#FFE2B455</color>  <!-- Warm yellow in illustrations: egg yolk, lantern flame (intro) -->
     <color name="capy_control_outline">#FF7A5F69</color>  <!-- Radio rings, empty slots -->
     <color name="capy_subject_history">#FFD9A57A</color>  <!-- Subject dot: History -->
     <color name="capy_subject_romanian">#FFB4A6E0</color>  <!-- Subject dot: Romanian -->

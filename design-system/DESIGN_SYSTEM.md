@@ -78,6 +78,7 @@ The theme files ship with the placeholder package `md.capy.tutore` — update th
 | `soft` | `capy_soft` | `#FCE7EE` | `#3D2531` | Selected tint, active nav pill |
 | `childBubble` | `capy_child_bubble` | `#F1E3EE` | `#3E2A3F` | Child chat bubble (Lilac pink) |
 | `highlight` | `capy_highlight` | `#F9D3E0` | `#5A2E43` | Key sentences in reading mode (E14), always with semi-bold text |
+| `sunny` | `capy_sunny` | `#F4C35A` | `#E2B455` | Warm yellow inside illustrations only (egg yolk, lantern flame, lamp bulb in the intro); never for text or a state |
 | `controlOutline` | `capy_control_outline` | `#CDA7B6` | `#7A5F69` | Radio rings, empty slots |
 | `subjectHistory` | `capy_subject_history` | `#B7814A` | `#D9A57A` | Subject dot: History |
 | `subjectRomanian` | `capy_subject_romanian` | `#8D7CC4` | `#B4A6E0` | Subject dot: Romanian |

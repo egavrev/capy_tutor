@@ -71,4 +71,7 @@ object CapyMotion {
     const val SHORT_MS = 200
     const val MEDIUM_MS = 300
     const val MIC_PULSE_MS = 2000
+    /** The start intro: its scene plays this long, holds a moment, then fades out (any tap skips it). */
+    const val INTRO_PLAY_MS = 1600
+    const val INTRO_HOLD_MS = 600
 }

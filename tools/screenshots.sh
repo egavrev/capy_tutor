@@ -111,6 +111,36 @@ else
   adb install -r "${APK:-app.apk}" >/dev/null && log "installed this APK"
 fi
 
+# ---- 0b. The start intro: both scenes, frozen at four moments, then one live start -------------
+intro_frames() { # intro_frames suffix frame...
+  local suffix=$1; shift
+  for scene in show museum; do
+    for f in "$@"; do
+      adb shell am force-stop $PKG
+      adb shell am start -W -n $PKG/.MainActivity --es capy_intro "$scene:$f" >/dev/null
+      shot "00_intro_${scene}_${f}${suffix}" 2
+    done
+  done
+}
+intro_frames "" 0.15 0.45 0.7 1
+# CI turns animations off, which skips the intro: turn them on for two live starts (the scenes alternate).
+ANIM=$(adb shell settings get global animator_duration_scale | tr -d '\r')
+adb shell settings put global animator_duration_scale 1
+adb shell am force-stop $PKG
+adb shell am start -W -n $PKG/.MainActivity >/dev/null
+shot 00_intro_live_a 0.9
+sleep 3
+adb shell am force-stop $PKG
+adb shell am start -W -n $PKG/.MainActivity >/dev/null
+shot 00_intro_live_b 0.9
+sleep 3
+if adb shell pidof $PKG >/dev/null; then log "intro: app still running after two live starts"; else log "!! intro: app not running"; fi
+adb shell settings put global animator_duration_scale "${ANIM:-0}"
+adb shell am force-stop $PKG
+adb shell am start -W -n $PKG/.MainActivity >/dev/null
+shot 00_intro_animations_off 1.5
+adb shell pm clear $PKG >/dev/null
+
 # ---- 1. First launch: setup for the parent --------------------------------------------------
 start fresh
 shot 01_setup_welcome
@@ -303,6 +333,7 @@ shot 35_history
 
 # ---- 6. Dark mode and 130% font ----------------------------------------------------------------
 adb shell cmd uimode night yes
+intro_frames _dark 0.45 1
 start 1
 shot 36_home_dark
 tap "Apariția omului*"
