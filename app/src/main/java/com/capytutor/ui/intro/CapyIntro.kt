@@ -271,9 +271,9 @@ private fun DrawScope.speechBubble(st: Stage, col: CapyColors, alpha: Float) {
 private fun DrawScope.lightSticks(tm: TextMeasurer, style: TextStyle, p: Float, col: CapyColors) {
     val n = 7
     val w = size.width / n
-    val r = min(w * 0.30f, size.height * 0.03f)
+    val r = min(w * 0.32f, size.height * 0.034f)
     val baseY = size.height * 0.985f
-    val topY = size.height * 0.88f
+    val topY = size.height * 0.84f
     val sway = sin(2 * PI.toFloat() * 2 * seg(p, 0f, 0.85f)) * (1f - seg(p, 0.6f, 0.85f))
     val heart = easeOut(seg(p, 0.85f, 0.93f))
     for (i in 0 until n) {
@@ -308,7 +308,15 @@ private fun MuseumScene(progress: () -> Float) {
         // The hall as it looks with the light on.
         drawRect(col.soft)
         drawRect(col.line, topLeft = Offset(0f, st.y(0.86f)), size = Size(size.width, size.height - st.y(0.86f)))
-        if (lampOn > 0f) drawCircle(col.highlight, radius = st.d(0.62f) * lampOn, center = Offset(st.x(0.5f), st.y(0.08f)), alpha = 0.9f)
+        if (lampOn > 0f) {
+            // Lamplight: a soft cone from the shade to the floor.
+            val light = Path().apply {
+                moveTo(st.x(0.41f), st.y(0.09f)); lineTo(st.x(0.59f), st.y(0.09f))
+                lineTo(st.x(0.96f), st.y(0.86f)); lineTo(st.x(0.04f), st.y(0.86f)); close()
+            }
+            drawPath(light, col.highlight, alpha = 0.9f * lampOn)
+            drawOval(col.highlight, topLeft = Offset(st.x(0.04f), st.y(0.83f)), size = Size(st.d(0.92f), st.d(0.06f)), alpha = lampOn)
+        }
         wallMap(st, col)
         amphora(st, col)
         globe(Offset(st.x(0.86f), st.y(0.60f)), st.d(0.08f), col)
@@ -333,7 +341,7 @@ private fun MuseumScene(progress: () -> Float) {
 
         // Capy: found by the beam (eyes open), then waving at the globe once the light is on.
         val img = Rect(st.x(0.30f), st.y(0.40f), st.x(0.76f), st.y(0.86f))
-        val wave = seg(p, 0.62f, 0.78f)
+        val wave = seg(p, 0.64f, 0.69f) // a quick swap reads as Capy's reaction, not a ghost
         if (wave < 1f) drawCapy(found, img, 1f - wave)
         if (wave > 0f) drawCapy(waving, img, wave)
 
@@ -433,7 +441,7 @@ private class Stage(val left: Float, val top: Float, val side: Float) {
 
 private fun DrawScope.stage(): Stage {
     val s = min(size.width, size.height * 0.56f)
-    return Stage((size.width - s) / 2, size.height * 0.14f, s)
+    return Stage((size.width - s) / 2, size.height * 0.18f, s)
 }
 
 /** A small globe (geography): meridians and two soft continents. */

@@ -128,11 +128,11 @@ ANIM=$(adb shell settings get global animator_duration_scale | tr -d '\r')
 adb shell settings put global animator_duration_scale 1
 adb shell am force-stop $PKG
 adb shell am start -W -n $PKG/.MainActivity >/dev/null
-shot 00_intro_live_a 0.9
+shot 00_intro_live_a 1.1
 sleep 3
 adb shell am force-stop $PKG
 adb shell am start -W -n $PKG/.MainActivity >/dev/null
-shot 00_intro_live_b 0.9
+shot 00_intro_live_b 1.1
 sleep 3
 if adb shell pidof $PKG >/dev/null; then log "intro: app still running after two live starts"; else log "!! intro: app not running"; fi
 adb shell settings put global animator_duration_scale "${ANIM:-0}"

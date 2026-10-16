@@ -5,7 +5,6 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.CoroutineScope
@@ -104,16 +103,6 @@ class SettingsStore(context: Context, scope: CoroutineScope, private val box: Se
         store.edit { it[SETUP_DONE] = true }
     }
 
-    /** Counts app starts for the start intro, which alternates its scenes. Returns the count before this start. */
-    suspend fun nextIntro(): Int {
-        var n = 0
-        store.edit { p ->
-            n = p[INTRO_COUNT] ?: 0
-            p[INTRO_COUNT] = n + 1
-        }
-        return n
-    }
-
     private companion object {
         val SETUP_DONE = booleanPreferencesKey("setup_done")
         val CHILD_NAME = stringPreferencesKey("child_name_enc")
@@ -122,6 +111,5 @@ class SettingsStore(context: Context, scope: CoroutineScope, private val box: Se
         val PIN_SALT = stringPreferencesKey("pin_salt")
         val GROQ_KEY = stringPreferencesKey("groq_key_enc")
         val VOICE_ON = booleanPreferencesKey("voice_on")
-        val INTRO_COUNT = intPreferencesKey("intro_count")
     }
 }

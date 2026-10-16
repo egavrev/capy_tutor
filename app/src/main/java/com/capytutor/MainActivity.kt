@@ -8,11 +8,7 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import com.capytutor.demo.Demo
 import com.capytutor.ui.CapyNavHost
@@ -34,9 +30,6 @@ class MainActivity : ComponentActivity() {
 
     /** The start intro over the app; null when there is none (or it is done). */
     private val intro = mutableStateOf<IntroScene?>(null)
-
-    /** True for the few ms while the start counter is read, so the app does not flash first. */
-    private val introWaiting = mutableStateOf(false)
 
     /** Debug only: the intro frozen at this point, for the screenshot tour. */
     private var introFrame: Float? = null
@@ -64,7 +57,6 @@ class MainActivity : ComponentActivity() {
                 CapyScreenBackground {
                     if (ready.value) CapyNavHost(shared = shared.value, onSharedConsumed = { shared.value = null })
                     intro.value?.let { scene -> CapyIntro(scene, onDone = { intro.value = null }, frame = introFrame) }
-                    if (introWaiting.value) Box(Modifier.fillMaxSize().background(CapyTheme.colors.soft))
                 }
             }
         }
@@ -83,12 +75,11 @@ class MainActivity : ComponentActivity() {
         }
         val animationsOff = Settings.Global.getFloat(contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
         if (animationsOff || (BuildConfig.DEBUG && intent.hasExtra(Demo.EXTRA))) return
-        introWaiting.value = true
-        lifecycleScope.launch {
-            val starts = runCatching { container.settings.nextIntro() }.getOrDefault(0)
-            intro.value = IntroScene.forStart(starts)
-            introWaiting.value = false
-        }
+        // A tiny counter read before the first frame, so the scene is there from the start.
+        val prefs = getSharedPreferences(INTRO_PREFS, MODE_PRIVATE)
+        val starts = prefs.getInt(INTRO_STARTS, 0)
+        prefs.edit().putInt(INTRO_STARTS, starts + 1).apply()
+        intro.value = IntroScene.forStart(starts)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -99,6 +90,10 @@ class MainActivity : ComponentActivity() {
     private companion object {
         /** Debug: `--es capy_intro show:0.5` shows that scene frozen halfway. */
         const val EXTRA_INTRO = "capy_intro"
+
+        /** How many times the app started, so the two intro scenes take turns. */
+        const val INTRO_PREFS = "capy_intro"
+        const val INTRO_STARTS = "starts"
     }
 
     private fun readShared(intent: Intent?) {
