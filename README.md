@@ -6,6 +6,7 @@ A calm Android study buddy: Vali retells a lesson by voice, Capy finds what she 
 
 ## Using the app
 
+0. **The start:** a 2-second intro, a different scene each time the app starts: Capy hosts the question show (light sticks with "?" turn into hearts, the ramen steam becomes a globe) or Capy's night shift at the little museum (a flashlight finds Capy, the lamp comes on). A tap skips it; it does not play when the phone has animations turned off. Design brief: the "Capy Tutore – splash screen brief" doc, ideas 3 and 4.
 1. **First launch (parent):** the child's name, how Capy writes about her (fată / băiat / nu spun), a 4-digit PIN for parent mode, the Groq API key (optional now, also in Setări). The name never leaves the phone; Groq only sees "copilul".
 2. **Add a lesson (parent):** tap the lock on Acasă, type the PIN, *Adaugă o lecție (.md)*. Or share the `.md` file to Capy Tutore from Files, Drive or a chat app. Capy reads it once with Groq and writes the hints and questions.
 3. **Review it:** open the lesson, check each idea (*Vezi și editează tot*), especially the test question, then *Lecția e gata*. Only ready lessons can be opened by the child.
