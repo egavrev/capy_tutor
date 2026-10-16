@@ -150,7 +150,7 @@ fun LessonsScreen(vm: LessonsViewModel, start: LessonFilter, onBack: () -> Unit,
                         caption = buildList {
                             add(RomanianText.count(list.size, "lecție", "lecții"))
                             val approved = list.count { it.status == LessonEntity.READY }
-                            if (filter != LessonFilter.APPROVED && approved > 0) add("$approved aprobate")
+                            if (filter != LessonFilter.APPROVED && approved > 0) add(RomanianText.count(approved, "aprobată", "aprobate"))
                             val toCheck = list.count { it.status != LessonEntity.READY && it.enriched }
                             if (filter != LessonFilter.APPROVED && toCheck > 0) add("$toCheck de verificat")
                         }.joinToString(" · "),
