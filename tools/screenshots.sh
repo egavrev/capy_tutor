@@ -261,6 +261,10 @@ adb shell input swipe 540 1700 540 600 300; sleep 1
 shot 28d_lesson_progress_more 1
 adb shell input keyevent 4; sleep 1.5
 adb shell input keyevent 4; sleep 1.5
+tap "Toate lecțiile"
+shot 28e_all_lessons
+tap "Geografie*"
+shot 28f_unit_open 1
 tap "Pământul*"
 shot 29_review
 tap "Vezi și editează tot"
@@ -271,6 +275,10 @@ for i in 1 2 3 4 5 6 7 8; do
 done
 tap "Vezi întrebările"
 shot 30b_review_quiz 1
+adb shell input keyevent 4; sleep 1.5
+adb shell input keyevent 4; sleep 1.5
+tap "Lecții aprobate"
+shot 30c_approved_lessons
 adb shell input keyevent 4; sleep 1.5
 tap "Setări"
 tap "Vocea lui Capy"
@@ -284,6 +292,7 @@ shot 33_phone_check 0
 adb shell input swipe 540 1900 540 600 300; sleep 1
 shot 34_phone_check_more 1
 adb shell input keyevent 4; sleep 1.5
+tap "Lecții aprobate"
 tap "Apariția omului*"
 adb shell input swipe 540 1900 540 400 300; sleep 1
 adb shell input swipe 540 1900 540 400 300; sleep 1

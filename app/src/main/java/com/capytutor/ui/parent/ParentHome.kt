@@ -49,8 +49,6 @@ import com.capytutor.ui.components.CapyPrimaryButton
 import com.capytutor.ui.components.CapyTopBar
 import com.capytutor.ui.components.PinPad
 import com.capytutor.ui.components.SectionTitle
-import com.capytutor.ui.components.SubjectDot
-import com.capytutor.ui.home.subjectColor
 import com.capytutor.ui.theme.CapyDimens
 import com.capytutor.ui.theme.CapyTheme
 import kotlinx.coroutines.Dispatchers
@@ -265,6 +263,7 @@ fun ParentHomeScreen(
     onUsage: () -> Unit,
     onPhoneCheck: () -> Unit,
     onProgress: () -> Unit = {},
+    onLessons: (LessonFilter) -> Unit = {},
 ) {
     val lessons by vm.lessons.collectAsStateWithLifecycle()
     val status by vm.status.collectAsStateWithLifecycle()
@@ -325,32 +324,42 @@ fun ParentHomeScreen(
                     }
                 }
             }
-            if (lessons.any { it.status == LessonEntity.READY }) {
-                item {
-                    CapyListRow(
-                        "Progres",
-                        caption = "Ce ține minte copilul, lecție cu lecție, și istoricul",
-                        leading = { RowIcon(R.drawable.ic_capy_review) },
-                        onClick = onProgress,
-                    )
-                }
-            }
+            // E21: the lessons live one level down, so Telefon and Setări are always in reach.
+            item { SectionTitle("Lecții") }
             if (lessons.isEmpty()) {
                 item { Text("Nicio lecție încă. Adaugă fișiere .md făcute după șablon, sau un .zip cu ele.", style = CapyTheme.type.body, color = c.textSecondary) }
-            }
-            lessonsByChapter(lessons).forEach { (header, list) ->
-                item(key = "h-$header") { SectionTitle(header) }
-                items(list, key = { it.id }) { l ->
+            } else {
+                val approved = lessons.count { it.status == LessonEntity.READY }
+                val toCheck = lessons.count { it.status != LessonEntity.READY && it.enriched }
+                item {
                     CapyListRow(
-                        title = l.title,
-                        caption = when {
-                            l.status == LessonEntity.READY -> "gata pentru copil"
-                            !l.enriched -> "fără întrebări încă"
-                            else -> "de verificat"
-                        },
-                        leading = { SubjectDot(subjectColor(c, l.subject)) },
-                        onClick = { onLesson(l.id) },
+                        "Toate lecțiile",
+                        caption = buildList {
+                            add(RomanianText.count(lessons.size, "încărcată", "încărcate"))
+                            if (toCheck > 0) add("$toCheck de verificat")
+                            if (missing > 0) add("$missing fără întrebări")
+                        }.joinToString(" · "),
+                        leading = { RowIcon(R.drawable.ic_capy_book) },
+                        onClick = { onLessons(LessonFilter.ALL) },
                     )
+                }
+                item {
+                    CapyListRow(
+                        "Lecții aprobate",
+                        caption = if (approved == 0) "Niciuna încă: copilul vede doar lecțiile aprobate" else "${RomanianText.count(approved, "lecție", "lecții")}, le vede copilul",
+                        leading = { RowIcon(R.drawable.ic_capy_check) },
+                        onClick = { onLessons(LessonFilter.APPROVED) },
+                    )
+                }
+                if (approved > 0) {
+                    item {
+                        CapyListRow(
+                            "Progres",
+                            caption = "Ce ține minte copilul, lecție cu lecție, și istoricul",
+                            leading = { RowIcon(R.drawable.ic_capy_review) },
+                            onClick = onProgress,
+                        )
+                    }
                 }
             }
             item { SectionTitle("Telefon") }

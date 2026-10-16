@@ -21,7 +21,10 @@ import com.capytutor.ui.home.HomeViewModel
 import com.capytutor.ui.parent.ChangePinScreen
 import com.capytutor.ui.parent.HistoryScreen
 import com.capytutor.ui.parent.HistoryViewModel
+import com.capytutor.ui.parent.LessonFilter
 import com.capytutor.ui.parent.LessonProgressScreen
+import com.capytutor.ui.parent.LessonsScreen
+import com.capytutor.ui.parent.LessonsViewModel
 import com.capytutor.ui.parent.LessonProgressViewModel
 import com.capytutor.ui.parent.LessonReviewScreen
 import com.capytutor.ui.parent.ProgressScreen
@@ -56,6 +59,7 @@ object Routes {
     const val USAGE = "parinte/folosire"
     const val PHONE = "parinte/verificare"
     const val PROGRESS = "parinte/progres"
+    const val LESSONS = "parinte/lectii/{filtru}"
     const val LESSON_PROGRESS = "parinte/progres/{id}"
     const val RECAP = "recapitulare"
     const val CORNER = "coltul-lui-capy"
@@ -68,6 +72,7 @@ object Routes {
     fun review(id: Long) = "parinte/lectie/$id"
     fun history(id: Long) = "parinte/istoric/$id"
     fun lessonProgress(id: Long) = "parinte/progres/$id"
+    fun lessons(filter: LessonFilter) = "parinte/lectii/${filter.wire}"
     fun quiz(id: Long) = "quiz/$id"
     fun read(id: Long) = "citeste/$id"
     fun reread(id: Long) = "reciteste/$id"
@@ -159,6 +164,15 @@ fun CapyNavHost(shared: String?, onSharedConsumed: () -> Unit) {
                 onUsage = { nav.navigate(Routes.USAGE) },
                 onPhoneCheck = { nav.navigate(Routes.PHONE) },
                 onProgress = { nav.navigate(Routes.PROGRESS) },
+                onLessons = { nav.navigate(Routes.lessons(it)) },
+            )
+        }
+        composable(Routes.LESSONS) { e ->
+            LessonsScreen(
+                vm = viewModel { LessonsViewModel(c) },
+                start = LessonFilter.fromWire(e.arguments?.getString("filtru")),
+                onBack = { nav.back() },
+                onLesson = { nav.navigate(Routes.review(it)) },
             )
         }
         composable(Routes.PROGRESS) {
