@@ -1,8 +1,12 @@
 package com.capytutor.ui.parent
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -40,7 +44,10 @@ import com.capytutor.AppContainer
 import com.capytutor.R
 import com.capytutor.core.RomanianText
 import com.capytutor.data.db.LessonEntity
+import com.capytutor.ui.components.BannerKind
+import com.capytutor.ui.components.CapyBanner
 import com.capytutor.ui.components.CapyListRow
+import com.capytutor.ui.components.CapySecondaryButton
 import com.capytutor.ui.components.CapyTextButton
 import com.capytutor.ui.components.CapyTextField
 import com.capytutor.ui.components.CapyTopBar
@@ -82,6 +89,12 @@ class LessonsViewModel(private val c: AppContainer) : ViewModel() {
     fun approve(ids: List<Long>) = viewModelScope.launch {
         withContext(Dispatchers.IO) { ids.forEach { c.lessons.setReady(it, true) } }
     }
+
+    /** Deletes these lessons for good, with their history and quizzes; [done] gets how many went. */
+    fun delete(ids: Collection<Long>, done: (Int) -> Unit) = viewModelScope.launch {
+        val n = withContext(Dispatchers.IO) { ids.count { runCatching { c.lessons.delete(it) }.isSuccess } }
+        done(n)
+    }
 }
 
 /** The status line under a lesson, in the parent lists. */
@@ -108,6 +121,11 @@ fun LessonsScreen(vm: LessonsViewModel, start: LessonFilter, onBack: () -> Unit,
     var query by rememberSaveable { mutableStateOf("") }
     var open by rememberSaveable { mutableStateOf(setOf<String>()) }
     var confirm by remember { mutableStateOf<String?>(null) }
+    // Deleting: a selection mode over the same list.
+    var selecting by rememberSaveable { mutableStateOf(false) }
+    var selected by remember { mutableStateOf(setOf<Long>()) }
+    var confirmDelete by remember { mutableStateOf(false) }
+    var deletedNote by remember { mutableStateOf<String?>(null) }
     val col = CapyTheme.colors
 
     val q = RomanianText.foldForMatching(query.trim())
@@ -115,16 +133,34 @@ fun LessonsScreen(vm: LessonsViewModel, start: LessonFilter, onBack: () -> Unit,
     val groups = lessonsByChapter(shown)
     // With a search, or a single unit, everything is unfolded.
     val unfoldAll = q.isNotEmpty() || groups.size == 1
+    // Lessons deleted elsewhere (or just now) drop out of the selection.
+    val chosen = selected.intersect(all.map { it.id }.toSet())
+
+    fun toggle(ids: Collection<Long>, on: Boolean) {
+        selected = if (on) chosen + ids else chosen - ids.toSet()
+        confirmDelete = false
+    }
+    fun stopSelecting() {
+        selecting = false
+        selected = emptySet()
+        confirmDelete = false
+    }
+
+    BackHandler(enabled = selecting) { stopSelecting() }
 
     Column(Modifier.fillMaxSize().systemBarsPadding().imePadding()) {
-        CapyTopBar(filter.title, onBack = onBack, modifier = Modifier.padding(horizontal = CapyDimens.screenMargin))
+        CapyTopBar(
+            if (selecting) "Șterge lecții" else filter.title,
+            onBack = if (selecting) ({ stopSelecting() }) else onBack,
+            modifier = Modifier.padding(horizontal = CapyDimens.screenMargin),
+        )
         LazyColumn(
-            Modifier.fillMaxSize(),
+            Modifier.weight(1f).fillMaxWidth(),
             contentPadding = PaddingValues(start = CapyDimens.screenMargin, end = CapyDimens.screenMargin, bottom = CapyDimens.blockGap),
             verticalArrangement = Arrangement.spacedBy(CapyDimens.itemGap),
         ) {
             item {
-                ChoicePills(LessonFilter.entries.map { it to it.pill }, filter, { filter = it; confirm = null })
+                ChoicePills(LessonFilter.entries.map { it to it.pill }, filter, { filter = it; confirm = null; confirmDelete = false })
             }
             if (all.size > 8) {
                 item { CapyTextField(query, { query = it }, "Caută o lecție") }
@@ -136,11 +172,33 @@ fun LessonsScreen(vm: LessonsViewModel, start: LessonFilter, onBack: () -> Unit,
                         shown.isEmpty() && q.isNotEmpty() -> "Nicio lecție nu se potrivește."
                         shown.isEmpty() && filter == LessonFilter.APPROVED -> "Nicio lecție aprobată încă. Copilul vede doar lecțiile aprobate."
                         shown.isEmpty() -> "Toate lecțiile sunt aprobate."
+                        selecting -> "Atinge lecțiile pe care vrei să le ștergi."
                         else -> RomanianText.count(shown.size, "lecție", "lecții") + " în " + RomanianText.count(groups.size, "unitate", "unități") + "."
                     },
                     style = CapyTheme.type.caption,
                     color = col.textSecondary,
                 )
+            }
+            deletedNote?.let { note ->
+                item { CapyBanner(note, BannerKind.INFO) }
+            }
+            if (all.isNotEmpty()) {
+                item {
+                    when {
+                        !selecting -> CapyTextButton("Șterge lecții") {
+                            selecting = true
+                            deletedNote = null
+                            confirm = null
+                        }
+                        shown.isNotEmpty() -> {
+                            val ids = shown.map { it.id }
+                            val allOn = chosen.containsAll(ids)
+                            CapyTextButton(
+                                if (allOn) "Deselectează tot" else "Selectează toate cele afișate (${shown.size})",
+                            ) { toggle(ids, !allOn) }
+                        }
+                    }
+                }
             }
             groups.forEach { (header, list) ->
                 val unfolded = unfoldAll || header in open
@@ -149,27 +207,52 @@ fun LessonsScreen(vm: LessonsViewModel, start: LessonFilter, onBack: () -> Unit,
                         header,
                         caption = buildList {
                             add(RomanianText.count(list.size, "lecție", "lecții"))
-                            val approved = list.count { it.status == LessonEntity.READY }
-                            if (filter != LessonFilter.APPROVED && approved > 0) add(RomanianText.count(approved, "aprobată", "aprobate"))
-                            val toCheck = list.count { it.status != LessonEntity.READY && it.enriched }
-                            if (filter != LessonFilter.APPROVED && toCheck > 0) add("$toCheck de verificat")
+                            if (selecting) {
+                                val n = list.count { it.id in chosen }
+                                if (n > 0) add(RomanianText.count(n, "selectată", "selectate"))
+                            } else {
+                                val approved = list.count { it.status == LessonEntity.READY }
+                                if (filter != LessonFilter.APPROVED && approved > 0) add(RomanianText.count(approved, "aprobată", "aprobate"))
+                                val toCheck = list.count { it.status != LessonEntity.READY && it.enriched }
+                                if (filter != LessonFilter.APPROVED && toCheck > 0) add("$toCheck de verificat")
+                            }
                         }.joinToString(" · "),
                         unfolded = unfolded,
                         onToggle = if (unfoldAll) null else ({ open = if (header in open) open - header else open + header }),
                     )
                 }
+                if (selecting) {
+                    item(key = "s-$header") {
+                        val ids = list.map { it.id }
+                        val allOn = chosen.containsAll(ids)
+                        CapyTextButton(if (allOn) "Deselectează unitatea" else "Selectează toată unitatea (${list.size})") { toggle(ids, !allOn) }
+                    }
+                }
                 if (unfolded) {
                     items(list, key = { it.id }) { l ->
-                        CapyListRow(
-                            title = l.title,
-                            caption = lessonCaption(l, l.id in quizIds),
-                            leading = { SubjectDot(subjectColor(col, l.subject)) },
-                            onClick = { onLesson(l.id) },
-                        )
+                        if (selecting) {
+                            val on = l.id in chosen
+                            CapyListRow(
+                                title = l.title,
+                                caption = lessonCaption(l, l.id in quizIds),
+                                leading = { CheckSquare(on) },
+                                chevron = false,
+                                role = Role.Checkbox,
+                                modifier = Modifier.semantics { stateDescription = if (on) "selectată" else "neselectată" },
+                                onClick = { toggle(listOf(l.id), !on) },
+                            )
+                        } else {
+                            CapyListRow(
+                                title = l.title,
+                                caption = lessonCaption(l, l.id in quizIds),
+                                leading = { SubjectDot(subjectColor(col, l.subject)) },
+                                onClick = { onLesson(l.id) },
+                            )
+                        }
                     }
                     // A whole unit at once, once its questions are ready (the parent can still review each).
                     val approvable = list.filter { it.status != LessonEntity.READY && it.enriched }
-                    if (filter == LessonFilter.TO_CHECK && approvable.size > 1) {
+                    if (!selecting && filter == LessonFilter.TO_CHECK && approvable.size > 1) {
                         item(key = "a-$header") {
                             CapyTextButton(
                                 if (confirm == header) "Apasă din nou: aprobă ${RomanianText.count(approvable.size, "lecție", "lecții")}"
@@ -187,6 +270,71 @@ fun LessonsScreen(vm: LessonsViewModel, start: LessonFilter, onBack: () -> Unit,
                 }
             }
         }
+        if (selecting) {
+            DeleteBar(
+                count = chosen.size,
+                confirming = confirmDelete,
+                onDelete = {
+                    if (!confirmDelete) {
+                        confirmDelete = true
+                    } else {
+                        val ids = chosen
+                        stopSelecting()
+                        vm.delete(ids) { n -> deletedNote = "Am șters " + RomanianText.count(n, "lecție", "lecții") + "." }
+                    }
+                },
+                onCancel = { stopSelecting() },
+            )
+        }
+    }
+}
+
+/**
+ * The bar under the list while selecting: how many, what goes with them, and the delete button,
+ * which asks for a second tap.
+ */
+@Composable
+private fun DeleteBar(count: Int, confirming: Boolean, onDelete: () -> Unit, onCancel: () -> Unit) {
+    val col = CapyTheme.colors
+    val lessons = RomanianText.count(count, "lecție", "lecții")
+    Surface(color = col.surface, contentColor = col.text, border = BorderStroke(CapyDimens.border, col.line), modifier = Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(horizontal = CapyDimens.screenMargin, vertical = CapyDimens.itemGap),
+            verticalArrangement = Arrangement.spacedBy(CapyDimens.itemGap),
+        ) {
+            Text(
+                if (count == 0) "Nicio lecție selectată." else if (count == 1) "1 lecție selectată." else "$lessons selectate.",
+                style = CapyTheme.type.label,
+                color = col.text,
+            )
+            Text(
+                "Se șterg cu tot cu istoricul, progresul și quiz-ul lor. Fundițele câștigate rămân.",
+                style = CapyTheme.type.caption,
+                color = col.textSecondary,
+            )
+            CapySecondaryButton(
+                if (confirming) "Apasă din nou: șterge definitiv $lessons" else "Șterge $lessons",
+                enabled = count > 0,
+                onClick = onDelete,
+            )
+            CapyTextButton("Renunță", modifier = Modifier.align(Alignment.CenterHorizontally), onClick = onCancel)
+        }
+    }
+}
+
+/** A check box drawn like the design system's radio ring: outline when off, filled `primary` with a check when on. */
+@Composable
+private fun CheckSquare(on: Boolean) {
+    val col = CapyTheme.colors
+    Box(
+        Modifier
+            .size(CapyDimens.icon)
+            .clip(CapyShapes.checkbox)
+            .background(if (on) col.primary else col.surface)
+            .border(CapyDimens.strokeIcon, if (on) col.primary else col.controlOutline, CapyShapes.checkbox),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (on) Icon(painterResource(R.drawable.ic_capy_check), contentDescription = null, tint = col.onPrimary, modifier = Modifier.size(CapyDimens.iconSmall))
     }
 }
 

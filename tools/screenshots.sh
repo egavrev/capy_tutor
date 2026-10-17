@@ -385,6 +385,21 @@ tap "Colțul lui Capy"
 shot 43_corner_font130
 adb shell settings put system font_scale 1.0
 
+# ---- 7. Deleting lessons: select one in "Toate lecțiile", delete with the second tap ----------
+start 1
+tap "Mod părinte"
+pin
+tap "Toate lecțiile"
+tap "Șterge lecții"
+tap "Geografie*"
+tap "Pământul*" 1
+shot 44_delete_selected 1
+tap "Șterge 1 lecție" 1
+shot 45_delete_confirm 1
+tap "Apasă din nou*" 2
+shot 46_deleted
+if has "Pământul*"; then log "!! the lesson is still there after deleting"; else log "deleted one lesson"; fi
+
 adb logcat -d > "$OUT/logcat.txt"
 if grep -q "FATAL EXCEPTION" "$OUT/logcat.txt"; then
   grep -A 40 "FATAL EXCEPTION" "$OUT/logcat.txt" > "$OUT/CRASH.txt"

@@ -118,6 +118,9 @@ fun CapyListRow(
     trailingText: String? = null,
     trailing: @Composable (() -> Unit)? = null,
     enabled: Boolean = true,
+    /** False when a tap does something in place (e.g. ticks a check box) instead of opening a page. */
+    chevron: Boolean = true,
+    role: Role = Role.Button,
     onClick: (() -> Unit)? = null,
 ) {
     val c = CapyTheme.colors
@@ -132,7 +135,7 @@ fun CapyListRow(
             .fillMaxWidth()
             .heightIn(min = CapyDimens.lessonRowHeight)
             .then(if (!enabled) Modifier.dashedBorder(c.inactiveOutline, CapyDimens.border, CapyDimens.radiusCard) else Modifier)
-            .then(if (onClick != null) Modifier.clickable(enabled = enabled, role = Role.Button, onClick = onClick) else Modifier),
+            .then(if (onClick != null) Modifier.clickable(enabled = enabled, role = role, onClick = onClick) else Modifier),
     ) {
         Row(
             Modifier.padding(horizontal = CapyDimens.screenMargin, vertical = CapyDimens.itemGap),
@@ -146,7 +149,7 @@ fun CapyListRow(
             }
             if (trailingText != null) Text(trailingText, style = CapyTheme.type.label, color = if (enabled) c.link else c.onInactive)
             trailing?.invoke()
-            if (onClick != null && enabled) {
+            if (onClick != null && enabled && chevron) {
                 Icon(painterResource(R.drawable.ic_capy_chevron), contentDescription = null, tint = c.textSecondary, modifier = Modifier.size(CapyDimens.icon))
             }
         }

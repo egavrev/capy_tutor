@@ -214,6 +214,11 @@ class LessonRepository(
         lessons.get(lessonId)?.let { lessons.update(it.copy(status = if (ready) LessonEntity.READY else LessonEntity.DRAFT)) }
     }
 
+    /**
+     * Deletes a lesson with everything that belongs to it: its file, key ideas, sessions (with
+     * their turns and results), quiz and quiz attempts (Room cascades). Bows already earned stay:
+     * the bow shelf keeps its own copy of the title.
+     */
     suspend fun delete(lessonId: Long) {
         lessons.get(lessonId)?.let { File(it.mdPath).delete() }
         lessons.delete(lessonId)

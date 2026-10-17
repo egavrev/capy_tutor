@@ -64,6 +64,8 @@ object CapyShapes {
     /** The child answers from the right: tail corner bottom-right. */
     val childBubble = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomEnd = 8.dp, bottomStart = 24.dp)
     val bottomSheet = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    /** Check boxes (selecting lessons to delete). */
+    val checkbox = RoundedCornerShape(6.dp)
 }
 
 /** Motion: 200-300 ms ease-out; the mic pulse is slow (2 s) so it never feels urgent. */
