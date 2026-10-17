@@ -167,10 +167,11 @@ fun ReadingScreen(c: AppContainer, vm: ReadingViewModel, onBack: () -> Unit, onD
                 }
             }
         }
-        if (onDone != null) {
-            Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(CapyDimens.screenMargin)) {
-                CapyPrimaryButton("Am citit, hai să povestesc", onClick = onDone)
-            }
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(CapyDimens.screenMargin)) {
+            // Before the retelling: on to it. Read again later (from Capy's questions or a quiz):
+            // back to the same place.
+            if (onDone != null) CapyPrimaryButton("Am citit, hai să povestesc", onClick = onDone)
+            else CapySecondaryButton("Înapoi la Capy", onClick = onBack)
         }
     }
 }

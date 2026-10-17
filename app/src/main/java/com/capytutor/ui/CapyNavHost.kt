@@ -132,7 +132,7 @@ fun CapyNavHost(shared: String?, onSharedConsumed: () -> Unit) {
                     vm.startAfterReading()
                 }
             }
-            SessionScreen(vm = vm, onClose = { nav.back() }, onRead = { nav.navigate(Routes.read(id)) })
+            SessionScreen(vm = vm, onClose = { nav.back() }, onRead = { nav.navigate(Routes.read(id)) }, onReread = { nav.navigate(Routes.reread(id)) })
         }
         composable(Routes.READ, idArg) { e ->
             val id = e.arguments!!.getLong("id")

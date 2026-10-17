@@ -203,6 +203,11 @@ tap "Gata, am terminat" 3
 shot 16_coverage 1
 tap "Hai să le căutăm împreună"
 shot 17_hint_broad
+# Back to the lesson text from Capy's questions, then back to the same question.
+tap "Citește lecția din nou"
+shot 17b_reread_from_hints 1
+tap "Înapoi la Capy"
+if has "Scrie sau apasă microfonul"; then log "back from the lesson text, same question"; else log "!! not back at the question after reading"; fi
 tap "Scrie sau apasă microfonul" && type_text "nu stiu exact"
 tap "Trimite" 3
 hide_keyboard

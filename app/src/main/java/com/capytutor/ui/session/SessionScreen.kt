@@ -70,7 +70,7 @@ import com.capytutor.ui.theme.CapyDimens
 import com.capytutor.ui.theme.CapyTheme
 
 @Composable
-fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit, onRead: () -> Unit = {}) {
+fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit, onRead: () -> Unit = {}, onReread: () -> Unit = {}) {
     val ui by vm.ui.collectAsStateWithLifecycle()
     val s = ui.state
     val pack = ui.pack
@@ -99,6 +99,12 @@ fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit, onRead: () -> Unit 
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
+            // From Capy's questions and the test, back to the lesson text (and then back here, same place).
+            if (s != null && s.phase in REREAD_PHASES && !ui.thinking && s.pending == null && ui.mic == MicState.IDLE) {
+                IconButton(onClick = onReread, modifier = Modifier.size(CapyDimens.touchTarget)) {
+                    Icon(painterResource(R.drawable.ic_capy_book), contentDescription = "Citește lecția din nou", tint = CapyTheme.colors.text, modifier = Modifier.size(CapyDimens.icon))
+                }
+            }
             IconButton(onClick = onClose, modifier = Modifier.size(CapyDimens.touchTarget)) {
                 Icon(painterResource(R.drawable.ic_capy_close), contentDescription = "Închide (se salvează)", tint = CapyTheme.colors.text, modifier = Modifier.size(CapyDimens.icon))
             }
@@ -326,6 +332,9 @@ private fun MicExplanation(mic: MicPermission, onKeyboard: () -> Unit) {
         }
     }
 }
+
+/** After the retelling: the lesson can be opened again from the questions, the test and the summary. */
+private val REREAD_PHASES = setOf(Phase.COVERAGE, Phase.HINTS, Phase.TEST, Phase.SUMMARY, Phase.DONE)
 
 @Composable
 private fun BottomArea(vm: SessionViewModel, ui: SessionUi, s: SessionState, mic: MicPermission, onClose: () -> Unit, onRead: () -> Unit) {
