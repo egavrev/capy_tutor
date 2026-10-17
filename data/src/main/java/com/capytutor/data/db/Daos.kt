@@ -58,6 +58,10 @@ interface LessonDao {
 
 @Dao
 interface SessionDao {
+    /** An unfinished attempt dropped to start the lesson over (turns and results cascade). */
+    @Query("DELETE FROM session WHERE id = :id AND endedAt IS NULL")
+    suspend fun deleteOpen(id: Long)
+
     @Query("SELECT * FROM session WHERE lessonId = :lessonId AND endedAt IS NULL ORDER BY startedAt DESC LIMIT 1")
     suspend fun openFor(lessonId: Long): SessionEntity?
 

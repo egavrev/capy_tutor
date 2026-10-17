@@ -32,6 +32,9 @@ class SessionRepository(private val db: CapyDatabase, private val clock: () -> L
         return s.id to state
     }
 
+    /** Drops an unfinished attempt ("start from the lesson again"); a finished one is never touched. */
+    suspend fun discard(sessionId: Long) = sessions.deleteOpen(sessionId)
+
     suspend fun create(lessonId: Long, state: SessionState): Long = sessions.insert(
         SessionEntity(
             lessonId = lessonId, startedAt = clock(), endedAt = null, phase = state.phase.name,

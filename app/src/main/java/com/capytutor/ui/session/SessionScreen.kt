@@ -25,22 +25,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import com.capytutor.container
-import com.capytutor.ui.components.MicButton
-import com.capytutor.ui.components.MicLook
-import com.capytutor.voice.AndroidTts
-import com.capytutor.voice.MicPermission
-import com.capytutor.voice.rememberMicPermission
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.capytutor.R
+import com.capytutor.container
 import com.capytutor.core.pack.LessonPack
 import com.capytutor.core.schema.CoverageStatus
 import com.capytutor.core.session.CapyMood
@@ -65,12 +63,19 @@ import com.capytutor.ui.components.ChipState
 import com.capytutor.ui.components.FeedbackKind
 import com.capytutor.ui.components.FeedbackPanel
 import com.capytutor.ui.components.IdeaChips
+import com.capytutor.ui.components.MicButton
+import com.capytutor.ui.components.MicLook
 import com.capytutor.ui.components.StepProgress
 import com.capytutor.ui.theme.CapyDimens
 import com.capytutor.ui.theme.CapyTheme
+import com.capytutor.voice.AndroidTts
+import com.capytutor.voice.MicPermission
+import com.capytutor.voice.rememberMicPermission
 
 @Composable
 fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit, onRead: () -> Unit = {}, onReread: () -> Unit = {}) {
+    // "Back to the lesson" asks first when something would be lost.
+    var confirmRestart by rememberSaveable { mutableStateOf(false) }
     val ui by vm.ui.collectAsStateWithLifecycle()
     val s = ui.state
     val pack = ui.pack
@@ -99,10 +104,20 @@ fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit, onRead: () -> Unit 
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
-            // From Capy's questions and the test, back to the lesson text (and then back here, same place).
-            if (s != null && s.phase in REREAD_PHASES && !ui.thinking && s.pending == null && ui.mic == MicState.IDLE) {
-                IconButton(onClick = onReread, modifier = Modifier.size(CapyDimens.touchTarget)) {
-                    Icon(painterResource(R.drawable.ic_capy_book), contentDescription = "Citește lecția din nou", tint = CapyTheme.colors.text, modifier = Modifier.size(CapyDimens.icon))
+            // Back to the lesson from any step. Before the end it starts the lesson over (read,
+            // retell, questions, test again); after the end it only shows the text.
+            if (s != null && s.phase in BOOK_PHASES && !ui.thinking && s.pending == null && ui.mic == MicState.IDLE) {
+                IconButton(
+                    onClick = {
+                        when {
+                            s.phase == Phase.SUMMARY || s.phase == Phase.DONE -> onReread()
+                            s.phase == Phase.RETELLING && s.retelling.isBlank() && ui.draft.isBlank() -> vm.restart(onRead)
+                            else -> confirmRestart = true
+                        }
+                    },
+                    modifier = Modifier.size(CapyDimens.touchTarget),
+                ) {
+                    Icon(painterResource(R.drawable.ic_capy_book), contentDescription = "Înapoi la lecție", tint = CapyTheme.colors.text, modifier = Modifier.size(CapyDimens.icon))
                 }
             }
             IconButton(onClick = onClose, modifier = Modifier.size(CapyDimens.touchTarget)) {
@@ -120,7 +135,17 @@ fun SessionScreen(vm: SessionViewModel, onClose: () -> Unit, onRead: () -> Unit 
                     Phase.SUMMARY, Phase.DONE -> Summary(pack, s, ui.bows, Modifier.weight(1f))
                     else -> Chat(pack, s, ui, voice, Modifier.weight(1f))
                 }
-                BottomArea(vm, ui, s, mic, onClose, onRead)
+                if (confirmRestart && s.phase !in setOf(Phase.INTRO, Phase.SUMMARY, Phase.DONE)) {
+                    RestartPanel(
+                        onYes = {
+                            confirmRestart = false
+                            vm.restart(onRead)
+                        },
+                        onNo = { confirmRestart = false },
+                    )
+                } else {
+                    BottomArea(vm, ui, s, mic, onClose, onRead)
+                }
             }
         }
     }
@@ -333,8 +358,28 @@ private fun MicExplanation(mic: MicPermission, onKeyboard: () -> Unit) {
     }
 }
 
-/** After the retelling: the lesson can be opened again from the questions, the test and the summary. */
-private val REREAD_PHASES = setOf(Phase.COVERAGE, Phase.HINTS, Phase.TEST, Phase.SUMMARY, Phase.DONE)
+/** Every step after the lesson intro shows the book icon. */
+private val BOOK_PHASES = setOf(Phase.RETELLING, Phase.COVERAGE, Phase.HINTS, Phase.TEST, Phase.SUMMARY, Phase.DONE)
+
+/** Asked before starting the lesson over, in place of the answer area. */
+@Composable
+private fun RestartPanel(onYes: () -> Unit, onNo: () -> Unit) {
+    Column(
+        Modifier.fillMaxWidth().navigationBarsPadding().padding(CapyDimens.screenMargin),
+        verticalArrangement = Arrangement.spacedBy(CapyDimens.itemGap),
+    ) {
+        CapyCard {
+            Text("O luăm de la capăt?", style = CapyTheme.type.label, color = CapyTheme.colors.text)
+            Text(
+                "Citești lecția din nou, apoi povestești, cauți ideile cu Capy și dai testul. Ce ai făcut acum în lecția asta nu se păstrează.",
+                style = CapyTheme.type.body,
+                color = CapyTheme.colors.text,
+            )
+        }
+        CapyPrimaryButton("Da, citesc lecția", onClick = onYes)
+        CapyTextButton("Rămân aici", modifier = Modifier.align(Alignment.CenterHorizontally), onClick = onNo)
+    }
+}
 
 @Composable
 private fun BottomArea(vm: SessionViewModel, ui: SessionUi, s: SessionState, mic: MicPermission, onClose: () -> Unit, onRead: () -> Unit) {

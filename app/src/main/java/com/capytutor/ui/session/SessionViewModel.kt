@@ -211,6 +211,29 @@ class SessionViewModel(private val c: AppContainer, private val lessonId: Long) 
         c.stopVoice()
     }
 
+    /**
+     * Back to the start of the lesson from any step: this attempt is dropped (it was not
+     * finished, so it never counted for progress or bows) and a fresh one waits at the lesson
+     * intro. [then] opens the reading page; "Am citit" there goes on to the retelling.
+     */
+    fun restart(then: () -> Unit) {
+        val r = runner ?: return
+        if (_ui.value.thinking) return
+        val phase = _ui.value.state?.phase ?: return
+        if (phase == Phase.SUMMARY || phase == Phase.DONE) return
+        if (c.recorder.isRecording) c.recorder.cancel()
+        c.deviceStt.stop()
+        c.stopVoice()
+        viewModelScope.launch {
+            val old = sessionId
+            sessionId = null
+            if (old != null) withContext(Dispatchers.IO + NonCancellable) { c.sessions.discard(old) }
+            val pack = _ui.value.pack ?: return@launch
+            _ui.value = SessionUi(loading = false, pack = pack, state = r.start().state)
+            then()
+        }
+    }
+
     /** "Am citit, hai să povestesc" in reading mode: on to retelling, only from the lesson intro. */
     fun startAfterReading() {
         if (_ui.value.state?.phase == Phase.INTRO) send(Input.Continue)

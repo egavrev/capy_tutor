@@ -203,11 +203,11 @@ tap "Gata, am terminat" 3
 shot 16_coverage 1
 tap "Hai să le căutăm împreună"
 shot 17_hint_broad
-# Back to the lesson text from Capy's questions, then back to the same question.
-tap "Citește lecția din nou"
-shot 17b_reread_from_hints 1
-tap "Înapoi la Capy"
-if has "Scrie sau apasă microfonul"; then log "back from the lesson text, same question"; else log "!! not back at the question after reading"; fi
+# "Înapoi la lecție" asks first; "Rămân aici" keeps the same question (the full restart is step 8).
+tap "Înapoi la lecție"
+shot 17b_restart_ask 1
+tap "Rămân aici"
+if has "Scrie sau apasă microfonul"; then log "stayed at the same question"; else log "!! not at the question after 'Rămân aici'"; fi
 tap "Scrie sau apasă microfonul" && type_text "nu stiu exact"
 tap "Trimite" 3
 hide_keyboard
@@ -417,6 +417,21 @@ shot 45_delete_confirm 1
 tap "Apasă din nou*" 2
 shot 46_deleted
 if has "Pământul*"; then log "!! the lesson is still there after deleting"; else log "deleted one lesson"; fi
+
+# ---- 8. Start the lesson over from Capy's questions (the dark-mode session is still open) ------
+start 1
+tap "Acasă"
+tap "Apariția omului*" 3
+shot 47_resumed_hints 1
+tap "Înapoi la lecție"
+shot 48_restart_ask 1
+tap "Da, citesc lecția" 2
+shot 49_restart_reading 1
+tap "Am citit, hai să povestesc" 2
+shot 50_restart_retelling 1
+if has "in Asia"; then log "!! old answers still there after starting over"
+elif has "Apasă și povestește"; then log "started the lesson over: fresh retelling"
+else log "!! not at a fresh retelling after starting over"; fi
 
 adb logcat -d > "$OUT/logcat.txt"
 if grep -q "FATAL EXCEPTION" "$OUT/logcat.txt"; then
