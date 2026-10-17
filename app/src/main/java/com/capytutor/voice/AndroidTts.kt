@@ -3,6 +3,7 @@ package com.capytutor.voice
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import com.capytutor.core.speech.SpeechText
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.Locale
@@ -67,7 +68,7 @@ class AndroidTts(context: Context) : com.capytutor.ai.TextToSpeech {
         queued.clear()
         current = id
         _speaking.value = text
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, id)
+        tts.speak(SpeechText.forVoice(text), TextToSpeech.QUEUE_FLUSH, null, id)
     }
 
     /**
@@ -84,7 +85,7 @@ class AndroidTts(context: Context) : com.capytutor.ai.TextToSpeech {
             val id = "q$batch-$i"
             queued[id] = piece
             if (i == pieces.lastIndex) current = id
-            tts.speak(piece, if (i == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null, id)
+            tts.speak(SpeechText.forVoice(piece), if (i == 0) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD, null, id)
         }
         _speaking.value = pieces.first()
     }
