@@ -24,6 +24,7 @@ start() { # start [demo-mode]
   adb shell am force-stop $PKG
   adb shell am start -W -n $PKG/.MainActivity --es capy_demo "${1:-1}" >/dev/null
   sleep 4
+  clear_anr || true
 }
 
 dump() {
@@ -62,9 +63,21 @@ if best:
 PY
 }
 
+# A system "… isn't responding" dialog (a slow emulator) hides the app: tap "Wait" and go on. If it
+# is about Capy Tutore itself, that is a real problem and is logged as one.
+clear_anr() {
+  local xy
+  xy=$(find_node "Wait")
+  [ -n "$xy" ] && grep -q "isn't responding" "$OUT/.ui.xml" 2>/dev/null || return 1
+  if grep -q "Capy Tutore isn't responding" "$OUT/.ui.xml"; then log "!! Capy Tutore was not responding"; else log "closed a system 'not responding' dialog"; fi
+  adb shell input tap $xy
+  sleep 2
+}
+
 tap() { # tap "label" [wait]
   local xy
   xy=$(find_node "$1")
+  if [ -z "$xy" ] && clear_anr; then xy=$(find_node "$1"); fi
   if [ -z "$xy" ]; then
     STEP=$((STEP + 1))
     cp "$OUT/.ui.xml" "$OUT/missing_${STEP}.xml" 2>/dev/null
