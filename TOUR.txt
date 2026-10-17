@@ -1,0 +1,107 @@
+installed the previous APK
+installed this APK over it
+shot 00_upgrade_home
+upgrade kept the lessons
+shot 00_intro_show_0.15
+shot 00_intro_show_0.45
+shot 00_intro_show_0.7
+shot 00_intro_show_1
+shot 00_intro_museum_0.15
+shot 00_intro_museum_0.45
+shot 00_intro_museum_0.7
+shot 00_intro_museum_1
+shot 00_intro_live_a
+shot 00_intro_live_b
+intro: app still running after two live starts
+shot 00_intro_animations_off
+shot 01_setup_welcome
+shot 02_setup_child
+shot 03_setup_child_filled
+shot 04_setup_pin
+shot 05_setup_pin_confirm
+shot 06_setup_key
+shot 07_home_empty
+shot 08_home_lessons
+shot 09_lesson_ready
+shot 09b_reading
+shot 09c_reading_more
+shot 10_retelling_mic
+shot 11_mic_explain
+shot 12_mic_permission_dialog
+shot 13_recording
+shot 14_transcribed
+shot 15_retelling_sent
+shot 16_coverage
+shot 17_hint_broad
+shot 17b_restart_ask
+stayed at the same question
+shot 18_hint_clue
+force-stop in the middle of the hint ladder
+shot 19_home_resume
+shot 20_resumed
+shot 21_test_question
+shot 22_feedback_right
+shot 23_feedback_not_yet
+shot 24_summary
+shot 25_done
+shot 25b_home_bows
+shot 26a_recap
+shot 26b_quiz_choice
+shot 26c_choice_selected
+shot 26d_feedback_right
+shot 26e_truefalse_not_yet
+force-stop in the middle of the quiz
+shot 26f_quiz_resumed_order
+shot 26g_order_placed
+shot 26h_order_right
+shot 26i_match
+shot 26j_match_paired
+shot 26k_match_not_yet
+shot 26l_quiz_results
+shot 26m_quiz_again
+shot 26n_corner
+shot 26o_corner_shelf
+shot 26_pin_gate
+shot 27_pin_wrong
+shot 28_parent_home
+shot 28b_progress
+shot 28c_lesson_progress
+shot 28d_lesson_progress_more
+shot 28e_all_lessons
+shot 28f_unit_open
+shot 29_review
+shot 30_review_edit
+shot 30b_review_quiz
+shot 30c_approved_lessons
+shot 31_settings_voice_on
+shot 32_usage
+shot 33_phone_check
+shot 34_phone_check_more
+shot 35_history
+shot 00_intro_show_0.45_dark
+shot 00_intro_show_1_dark
+shot 00_intro_museum_0.45_dark
+shot 00_intro_museum_1_dark
+shot 36_home_dark
+shot 37_lesson_ready_dark
+shot 37b_reading_dark
+force-stop while Capy is thinking
+shot 38_coverage_dark_after_kill
+shot 39_hint_dark_speaker
+shot 39b_recap_dark
+shot 39c_quiz_dark_not_yet
+shot 39d_order_dark
+shot 39e_corner_dark
+shot 40_home_font130
+shot 41_session_font130
+shot 42_quiz_font130
+shot 43_corner_font130
+shot 44_delete_selected
+shot 45_delete_confirm
+shot 46_deleted
+deleted one lesson
+shot 47_resumed_hints
+shot 48_restart_ask
+shot 49_restart_reading
+shot 50_restart_retelling
+started the lesson over: fresh retelling
