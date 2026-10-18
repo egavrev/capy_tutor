@@ -1,0 +1,167 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :data:preBuild UP-TO-DATE
+> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :data:preDebugBuild UP-TO-DATE
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :ai:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :ai:processResources NO-SOURCE
+> Task :ai:processTestResources NO-SOURCE
+> Task :testbench:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :testbench:processResources NO-SOURCE
+> Task :testbench:processTestResources NO-SOURCE
+> Task :data:generateDebugResValues
+> Task :app:generateDebugBuildConfig
+> Task :data:writeDebugAarMetadata
+> Task :app:generateDebugResValues
+> Task :data:generateDebugResources
+> Task :app:generateDebugResources
+> Task :data:packageDebugResources
+> Task :data:extractDeepLinksDebug
+> Task :data:compileDebugLibraryResources
+> Task :data:processDebugManifest
+> Task :core:processResources
+> Task :core:processTestResources NO-SOURCE
+> Task :data:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app:checkDebugAarMetadata
+> Task :data:parseDebugLocalResources
+> Task :data:javaPreCompileDebug
+> Task :data:preDebugUnitTestBuild UP-TO-DATE
+> Task :data:javaPreCompileDebugUnitTest
+> Task :data:preReleaseBuild UP-TO-DATE
+> Task :data:generateReleaseResValues
+> Task :app:mapDebugSourceSetPaths
+> Task :data:generateReleaseResources
+> Task :data:generateDebugRFile
+> Task :data:packageReleaseResources
+> Task :data:parseReleaseLocalResources
+> Task :data:generateDebugUnitTestStubRFile
+> Task :data:generateReleaseRFile
+> Task :data:preReleaseUnitTestBuild UP-TO-DATE
+> Task :data:javaPreCompileRelease
+> Task :data:javaPreCompileReleaseUnitTest
+> Task :data:generateReleaseUnitTestStubRFile
+> Task :data:writeReleaseAarMetadata
+> Task :data:extractDeepLinksRelease
+> Task :data:processReleaseManifest
+> Task :app:packageDebugResources
+> Task :app:createDebugCompatibleScreenManifests
+> Task :app:extractDeepLinksDebug
+> Task :app:parseDebugLocalResources
+> Task :app:processDebugMainManifest
+> Task :app:mergeDebugResources
+> Task :app:processDebugManifest
+> Task :app:preDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileDebug
+> Task :app:processDebugManifestForPackage
+> Task :app:javaPreCompileDebugUnitTest
+> Task :app:buildKotlinToolingMetadata
+> Task :app:preReleaseBuild UP-TO-DATE
+> Task :app:generateReleaseBuildConfig
+> Task :app:checkReleaseAarMetadata
+> Task :app:generateReleaseResValues
+> Task :app:mapReleaseSourceSetPaths
+> Task :app:generateReleaseResources
+> Task :app:processDebugResources
+> Task :app:packageReleaseResources
+> Task :app:createReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksRelease
+> Task :app:parseReleaseLocalResources
+> Task :app:processReleaseMainManifest
+> Task :app:processReleaseManifest
+> Task :app:javaPreCompileRelease
+> Task :app:processReleaseManifestForPackage
+> Task :app:preReleaseUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileReleaseUnitTest
+> Task :app:mergeReleaseResources
+> Task :app:processReleaseResources
+> Task :core:compileKotlin
+> Task :core:compileJava NO-SOURCE
+> Task :core:classes
+> Task :core:jar
+> Task :core:compileTestKotlin
+> Task :core:compileTestJava NO-SOURCE
+> Task :core:testClasses UP-TO-DATE
+> Task :ai:compileKotlin
+> Task :ai:compileJava NO-SOURCE
+> Task :ai:classes UP-TO-DATE
+> Task :ai:jar
+> Task :core:test
+> Task :ai:compileTestKotlin
+> Task :ai:compileTestJava NO-SOURCE
+> Task :ai:testClasses UP-TO-DATE
+> Task :testbench:compileKotlin
+> Task :testbench:compileJava NO-SOURCE
+> Task :testbench:classes UP-TO-DATE
+> Task :testbench:jar
+> Task :ai:test
+> Task :testbench:compileTestKotlin
+> Task :testbench:compileTestJava NO-SOURCE
+> Task :testbench:testClasses UP-TO-DATE
+> Task :testbench:test
+> Task :data:kspDebugKotlin
+> Task :data:kspReleaseKotlin
+> Task :data:compileReleaseKotlin
+> Task :data:compileDebugKotlin
+> Task :data:compileReleaseJavaWithJavac NO-SOURCE
+> Task :data:compileDebugJavaWithJavac NO-SOURCE
+> Task :data:processDebugJavaRes
+> Task :data:bundleLibCompileToJarRelease
+> Task :data:bundleLibRuntimeToJarRelease
+> Task :data:bundleLibCompileToJarDebug
+> Task :data:bundleLibRuntimeToJarDebug
+> Task :data:kspReleaseUnitTestKotlin NO-SOURCE
+> Task :data:kspDebugUnitTestKotlin NO-SOURCE
+> Task :data:compileDebugUnitTestKotlin NO-SOURCE
+> Task :data:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :data:compileReleaseUnitTestKotlin NO-SOURCE
+> Task :data:compileReleaseUnitTestJavaWithJavac NO-SOURCE
+> Task :data:copyRoomSchemas NO-SOURCE
+> Task :data:processReleaseJavaRes
+> Task :data:processDebugUnitTestJavaRes NO-SOURCE
+> Task :data:testDebugUnitTest NO-SOURCE
+> Task :data:processReleaseUnitTestJavaRes NO-SOURCE
+> Task :data:testReleaseUnitTest NO-SOURCE
+> Task :data:test UP-TO-DATE
+
+> Task :app:compileReleaseKotlin FAILED
+e: file:///home/runner/work/capy_tutor/capy_tutor/app/src/main/java/com/capytutor/demo/Demo.kt:71:14 Cannot access 'RoomDatabase' which is a supertype of 'CapyDatabase'. Check your module classpath for missing or conflicting dependencies.
+
+> Task :app:compileDebugKotlin FAILED
+e: file:///home/runner/work/capy_tutor/capy_tutor/app/src/main/java/com/capytutor/demo/Demo.kt:71:14 Cannot access 'RoomDatabase' which is a supertype of 'CapyDatabase'. Check your module classpath for missing or conflicting dependencies.
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run-1792357303318.json
+
+FAILURE: Build completed with 2 failures.
+
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileReleaseKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+==============================================================================
+
+BUILD FAILED in 1m 19s
+81 actionable tasks: 81 executed
