@@ -290,8 +290,13 @@ shot 26m_quiz_again 1
 adb shell input keyevent 4; sleep 1.5
 tap "Colțul lui Capy"
 shot 26n_corner
+# The shop: buy the plant (2 bows), then the lamp is too dear for now.
+tap "Plantă*"
+shot 26o_corner_bought 1
+tap "Lampă*"
 adb shell input swipe 540 1700 540 500 300; sleep 1
-shot 26o_corner_shelf 1
+shot 26p_corner_not_enough 1
+if has "Îți mai trebuie*"; then log "corner: says how many bows are missing"; else log "!! corner: no 'Îți mai trebuie' after a too-dear tap"; fi
 tap "Acasă"
 
 # ---- 5. Parent mode ----------------------------------------------------------------------------

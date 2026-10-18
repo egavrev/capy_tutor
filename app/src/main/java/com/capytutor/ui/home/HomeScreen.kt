@@ -51,7 +51,8 @@ data class HomeLesson(val lesson: LessonEntity, val inProgress: Boolean, val bow
 data class HomeUi(val name: String = "", val groups: List<Pair<String, List<HomeLesson>>> = emptyList(), val bows: Int = 0, val loaded: Boolean = false)
 
 class HomeViewModel(c: AppContainer) : ViewModel() {
-    val ui: StateFlow<HomeUi> = combine(c.lessons.observeLessons(), c.sessions.observeOpenLessonIds(), c.settings.settings, c.rewards.observe()) { lessons, open, settings, rewards ->
+    val ui: StateFlow<HomeUi> = combine(c.lessons.observeLessons(), c.sessions.observeOpenLessonIds(), c.settings.settings, c.corner.observe()) { lessons, open, settings, corner ->
+        val rewards = corner.rewards
         val openSet = open.toSet()
         HomeUi(
             name = settings.childName,
@@ -59,7 +60,8 @@ class HomeViewModel(c: AppContainer) : ViewModel() {
             groups = com.capytutor.ui.parent.lessonsByChapter(lessons.filter { it.status == LessonEntity.READY }).map { (header, list) ->
                 header to list.map { HomeLesson(it, it.id in openSet, rewards.bowsFor(it.id)) }
             },
-            bows = rewards.total,
+            // Bows left to spend in Capy's corner.
+            bows = corner.balance,
             loaded = true,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUi())

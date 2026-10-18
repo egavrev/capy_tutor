@@ -14,6 +14,7 @@ import com.capytutor.core.session.SessionAi
 import com.capytutor.data.db.CapyDatabase
 import com.capytutor.data.repo.LessonRepository
 import com.capytutor.data.repo.QuizRepository
+import com.capytutor.data.repo.CornerRepository
 import com.capytutor.data.repo.RewardRepository
 import com.capytutor.data.repo.SessionRepository
 import com.capytutor.data.repo.UsageStore
@@ -48,6 +49,7 @@ class AppContainer(private val context: Context) {
     val sessions = SessionRepository(db)
     val quizzes = QuizRepository(db, QuizMaker(router), hasGroqKey = { settings.groqKey.isNotBlank() })
     val rewards = RewardRepository(db)
+    val corner = CornerRepository(context, rewards)
     val progress = com.capytutor.data.repo.ProgressRepository(db, quizzes)
 
     /** Prepares questions, then quizzes, for many lessons within Groq's free limits (parent mode). */

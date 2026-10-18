@@ -1,7 +1,6 @@
 package com.capytutor.core.quiz
 
 import com.capytutor.core.reward.Bows
-import com.capytutor.core.reward.CornerItem
 import com.capytutor.core.schema.Validated
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -121,9 +120,5 @@ class QuizTest {
         assertEquals(0, Bows.forLesson(emptyList()))
         assertEquals(0, Bows.added(previousBest = 3, session = 1))
         assertEquals(1, Bows.added(previousBest = 2, session = 3))
-        assertEquals(emptyList<CornerItem>(), CornerItem.unlocked(2))
-        assertEquals(listOf(CornerItem.CUSHION), CornerItem.unlocked(3))
-        assertEquals(CornerItem.CUP to 5, CornerItem.next(3))
-        assertEquals(null, CornerItem.next(100))
     }
 }

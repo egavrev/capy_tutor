@@ -182,9 +182,17 @@ fun CapyPrimaryButton(text: String, enabled: Boolean = true, onClick: () -> Unit
 }
 ```
 
+## Capy's room (Colțul lui Capy)
+From the "Capy Tutore Pink" design. The room is illustration, like Capy's PNGs: the design's own drawing rendered to stacked
+transparent images (`corner_*.png` in `drawable-nodpi`, dark ones in `drawable-night-nodpi`; `tools/corner-render.py`), so its
+soft gradients and shadows are allowed there and nowhere else. The UI around it follows the usual rules: shop tiles are
+`surface` (owned) or `inactive` Linen (not yet, price with a bow), a thing in the room gets a 2 dp `primary` border and a
+`primary` check badge; "Îți mai trebuie N fundițe" in `primary`. Bows are spent on things (prices in `CornerItem`); a thing
+bought stays hers and can leave the room and come back for free.
+
 ## Icons
 `painterResource(R.drawable.ic_capy_<name>)`, tint with `Icon(..., tint = CapyTheme.colors.xxx)`. Available:
-home, review, corner, bow, checkheart, sprout, camera, link, mic, send, close, speaker, plus, book, hint, keyboard, pause, play, lock, chevron, back, drag, swap, check, offline, page, photo, clock, sliders, chart, flag, trash, backspace, list, truefalse, timeline, match, edit, user, bell, moon, history, romanian, math, science, geo, more, cup, lamp, plant, shelf, cushion, window.
+home, review, corner, bow, checkheart, sprout, camera, link, mic, send, close, speaker, plus, book, hint, keyboard, pause, play, lock, chevron, back, drag, swap, check, offline, page, photo, clock, sliders, chart, flag, trash, backspace, list, truefalse, timeline, match, edit, user, bell, moon, history, romanian, math, science, geo, more, cup, lamp, plant, shelf, cushion, window, plush, rug, sticker, poster, food; `heart_small` (12 dp, filled) by the corner title.
 Bows with fill: `ic_capy_bow_earned`, `ic_capy_bow_empty`, `ic_capy_bow_right` (use `Image`, not `Icon`).
 Need a new icon? Match the style: 24 dp grid, 2 dp stroke, round caps and joins, no fill (Material Symbols Rounded look).
 

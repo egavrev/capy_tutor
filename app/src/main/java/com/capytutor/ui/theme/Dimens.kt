@@ -49,6 +49,16 @@ object CapyDimens {
     val micRingOuter = 136.dp
     /** Mic button border when paused / busy. */
     val micBorder = 3.dp
+    /** Colțul lui Capy: the cloud behind the title. */
+    val cornerTitleHeight = 56.dp
+    /** Colțul lui Capy: a tile in the shop grid. */
+    val cornerTileMinHeight = 76.dp
+    /** Colțul lui Capy: the round check on a thing that is in the room. */
+    val placedBadge = 20.dp
+    /** Tiny icons: the hearts by the corner title. */
+    val iconTiny = 12.dp
+    /** Small icons inside tiles: the price bow, the placed check. */
+    val iconMini = 14.dp
     /** Bubbles use at most this share of the screen width. */
     const val bubbleMaxWidth = 0.85f
 }

@@ -115,7 +115,7 @@ fun CapyNavHost(shared: String?, onSharedConsumed: () -> Unit) {
             RecapScreen(vm = viewModel { RecapViewModel(c) }, onQuiz = { nav.navigate(Routes.quiz(it)) }, onTab = nav::tab)
         }
         composable(Routes.CORNER) {
-            CornerScreen(vm = viewModel { CornerViewModel(c) }, onTab = nav::tab)
+            CornerScreen(vm = viewModel { CornerViewModel(c) }, onTab = nav::tab, onParent = { nav.navigate(Routes.PIN) })
         }
         composable(Routes.QUIZ, idArg) { e ->
             val id = e.arguments!!.getLong("id")
