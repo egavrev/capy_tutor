@@ -438,6 +438,23 @@ if has "in Asia"; then log "!! old answers still there after starting over"
 elif has "Apasă și povestește"; then log "started the lesson over: fresh retelling"
 else log "!! not at a fresh retelling after starting over"; fi
 
+# ---- 9. Capy's room as in the design (debug demo: 62 bows left, six things), light and dark ----
+adb shell am force-stop $PKG
+adb shell am start -W -n $PKG/.MainActivity --es capy_demo 1 --es capy_corner design >/dev/null
+sleep 4
+tap "Colțul lui Capy"
+shot 51_corner_design 1
+tap "Fereastră*"
+tap "Postere*"
+shot 52_corner_bought_more 1
+tap "Pernă"
+shot 53_corner_pillow_out 1
+tap "Pernă"
+adb shell cmd uimode night yes
+sleep 2
+shot 54_corner_design_dark 2
+adb shell cmd uimode night no
+
 adb logcat -d > "$OUT/logcat.txt"
 if grep -q "FATAL EXCEPTION" "$OUT/logcat.txt"; then
   grep -A 40 "FATAL EXCEPTION" "$OUT/logcat.txt" > "$OUT/CRASH.txt"

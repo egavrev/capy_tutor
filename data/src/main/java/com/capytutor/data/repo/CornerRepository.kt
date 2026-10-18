@@ -45,6 +45,14 @@ class CornerRepository(context: Context, private val rewards: RewardRepository) 
         return result
     }
 
+    /** Sets the room outright (debug demo only). */
+    suspend fun set(corner: Corner) {
+        store.edit { p ->
+            p[OWNED] = corner.owned.map { it.name }.toSet()
+            p[HIDDEN] = corner.hidden.map { it.name }.toSet()
+        }
+    }
+
     private fun Preferences.corner() = Corner(owned = items(this[OWNED]), hidden = items(this[HIDDEN]))
 
     private fun items(names: Set<String>?): Set<CornerItem> =

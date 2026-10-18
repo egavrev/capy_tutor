@@ -5,6 +5,8 @@ import com.capytutor.AppContainer
 import com.capytutor.core.coverage.KeywordMatcher
 import com.capytutor.core.pack.LessonPack
 import com.capytutor.core.pack.PackIdea
+import com.capytutor.core.reward.Corner
+import com.capytutor.core.reward.CornerItem
 import com.capytutor.core.schema.AnswerReply
 import com.capytutor.core.schema.CoverageStatus
 import com.capytutor.core.schema.RecallIdea
@@ -15,6 +17,7 @@ import com.capytutor.core.session.CheckResult
 import com.capytutor.core.session.Purpose
 import com.capytutor.core.session.SessionAi
 import com.capytutor.core.session.SessionState
+import com.capytutor.data.db.BowAwardEntity
 import com.capytutor.data.repo.ImportResult
 import com.capytutor.data.settings.ChildGender
 import kotlinx.coroutines.delay
@@ -28,6 +31,9 @@ import kotlinx.coroutines.flow.first
  */
 object Demo {
     const val EXTRA = "capy_demo"
+
+    /** Debug: `--es capy_corner design` fills Capy's room as in the design, for the screenshot tour. */
+    const val CORNER = "capy_corner"
     const val NAME = "Ana"
     const val PIN = "1234"
     private val FILES = listOf("SAMPLE-aparitia-omului", "SAMPLE-pamantul")
@@ -54,6 +60,17 @@ object Demo {
             }
         }
     }
+}
+
+/**
+ * Capy's room as the design shows it: 107 bows earned, the pillow, plushies, lamp, plant, rug and
+ * cup bought (45), so 62 left. The bows sit on lesson -1, which no screen shows.
+ */
+suspend fun Demo.seedCorner(c: AppContainer) {
+    if (c.rewards.observe().first().total < 100) {
+        c.db.bows().insert(BowAwardEntity(lessonId = -1, lessonTitle = "Demo", sessionId = -1, bows = 3, added = 107, at = 0))
+    }
+    c.corner.set(Corner(owned = setOf(CornerItem.PILLOW, CornerItem.PLUSH, CornerItem.LAMP, CornerItem.PLANT, CornerItem.RUG, CornerItem.CUP)))
 }
 
 /** Stands in for Whisper in the tour: the emulator has no voice, so it "hears" a fixed sentence. */

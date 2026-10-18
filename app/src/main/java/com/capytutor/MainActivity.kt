@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
 import com.capytutor.demo.Demo
+import com.capytutor.demo.seedCorner
 import com.capytutor.ui.CapyNavHost
 import com.capytutor.ui.intro.CapyIntro
 import com.capytutor.ui.intro.IntroScene
@@ -44,6 +45,7 @@ class MainActivity : ComponentActivity() {
                 ready.value = false
                 lifecycleScope.launch {
                     Demo.seed(this@MainActivity, container, lessons = withLessons)
+                    if (intent.getStringExtra(Demo.CORNER) == "design") Demo.seedCorner(container)
                     ready.value = true
                 }
             }
