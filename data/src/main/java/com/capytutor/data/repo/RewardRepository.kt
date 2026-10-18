@@ -16,6 +16,11 @@ data class Rewards(val total: Int, val shelf: List<ShelfLesson>) {
 class RewardRepository(db: CapyDatabase) {
     private val bows = db.bows()
 
+    /** Debug demo only: bows on lesson -1 (shown nowhere), so the corner can look as in the design. */
+    suspend fun addDemoBows(n: Int) {
+        bows.insert(com.capytutor.data.db.BowAwardEntity(lessonId = -1, lessonTitle = "Demo", sessionId = -1, bows = 3, added = n, at = 0))
+    }
+
     fun observe(): Flow<Rewards> = bows.observeAll().map { rows ->
         val shelf = rows.groupBy { it.lessonId }.map { (id, list) ->
             ShelfLesson(id, list.maxBy { it.at }.lessonTitle, Bows.forLesson(list.map { it.bows }), list.maxOf { it.at })

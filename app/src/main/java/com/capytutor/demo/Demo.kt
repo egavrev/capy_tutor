@@ -17,7 +17,6 @@ import com.capytutor.core.session.CheckResult
 import com.capytutor.core.session.Purpose
 import com.capytutor.core.session.SessionAi
 import com.capytutor.core.session.SessionState
-import com.capytutor.data.db.BowAwardEntity
 import com.capytutor.data.repo.ImportResult
 import com.capytutor.data.settings.ChildGender
 import kotlinx.coroutines.delay
@@ -68,7 +67,7 @@ object Demo {
  */
 suspend fun Demo.seedCorner(c: AppContainer) {
     if (c.rewards.observe().first().total < 100) {
-        c.db.bows().insert(BowAwardEntity(lessonId = -1, lessonTitle = "Demo", sessionId = -1, bows = 3, added = 107, at = 0))
+        c.rewards.addDemoBows(107)
     }
     c.corner.set(Corner(owned = setOf(CornerItem.PILLOW, CornerItem.PLUSH, CornerItem.LAMP, CornerItem.PLANT, CornerItem.RUG, CornerItem.CUP)))
 }
